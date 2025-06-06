@@ -11,13 +11,15 @@ dependencies:
     sdk: flutter
   english_words: ^4.0.0
   provider: ^6.1.5
-  http: ^0.13.5
+  # http: ^0.13.5
   video_player_win: ^3.1.1
   file_picker: ^10.1.9
   path_provider: ^2.1.5
   video_player: ^2.10.0
   screenshot: ^3.0.0
   path: ^1.9.1
+  fvp: ^0.32.1
+  image: ^4.5.4
 
 dev_dependencies:
   flutter_test:
