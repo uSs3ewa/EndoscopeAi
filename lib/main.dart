@@ -1,14 +1,19 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player_win/video_player_win.dart';
+import 'package:video_player/video_player.dart';
+// import 'package:video_player_win/video_player_win.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:path/path.dart' as p;
+import 'package:fvp/fvp.dart' as fvp;
+import 'package:image/image.dart' as img;
 
 void main() async {
+  fvp.registerWith();
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
@@ -120,7 +125,7 @@ class FileVideoApp extends StatefulWidget {
 }
 
 class _FileVideoAppState extends State<FileVideoApp> {
-  late final WinVideoPlayerController _controller;
+  late final VideoPlayerController _controller;
   late final Future<void> _initializeVideoPlayerFuture;
   bool _isPlaying = false;
   bool _showControls = false;
@@ -137,7 +142,7 @@ class _FileVideoAppState extends State<FileVideoApp> {
       _isValidFile = true;
       _screenshotController = ScreenshotController();
       _controller =
-          WinVideoPlayerController.file(File(ChooseFile.filePath.toString()))
+          VideoPlayerController.file(File(ChooseFile.filePath.toString()))
             ..initialize().then((_) {
               setState(() {
                 _totalDuration = _controller.value.duration;
@@ -186,28 +191,7 @@ class _FileVideoAppState extends State<FileVideoApp> {
               ),
             ),
             floatingActionButton: FloatingActionButton(
-              onPressed: () async {
-                // Получаем скриншот
-                await _screenshotController
-                    .capture(delay: const Duration(seconds: 1))
-                    .then((image) async {
-                      if (image != null) {
-                        // Сохраняем скриншот в файл
-                        // Используйте любой метод сохранения, который вам нужен (например, File.writeAsBytes)
-                        print('Скриншот получен');
-                        final directory = Directory.current;
-                        final filePath =
-                            '${directory.path}/data/screenshots/screenshot.png'; // Создайте имя файла // TODO: добавить реализацию отслеживания количества созданных скриншотов, для этого нужно создать отдельную функцию
-                        final file = File(filePath);
-                        await file.writeAsBytes(
-                          image,
-                        ); // Сохраните скриншот в файл
-                        print('Скриншот сохранен в: $filePath');
-                      } else {
-                        print('Ошибка при получении скриншота');
-                      }
-                    });
-              },
+              onPressed: _makeScreenshot,
               backgroundColor: const Color.fromARGB(255, 252, 232, 232),
               child: Icon(
                 Icons.camera_alt,
@@ -235,7 +219,7 @@ class _FileVideoAppState extends State<FileVideoApp> {
                         children: [
                           AspectRatio(
                             aspectRatio: _controller.value.aspectRatio,
-                            child: WinVideoPlayer(_controller),
+                            child: VideoPlayer(_controller),
                           ),
                           if (_showControls || !_isPlaying)
                             Container(
@@ -327,6 +311,33 @@ class _FileVideoAppState extends State<FileVideoApp> {
         body: const Text('Ошибка во время открытия файла'),
       );
     }
+  }
+
+  void _makeScreenshot() async {
+    final width = _controller.getMediaInfo()!.video![0].codec.width;
+    final height = _controller.getMediaInfo()!.video![0].codec.height;
+
+    await _controller.snapshot(width: width, height: height).then((pixelData) {
+      if (pixelData == null) {
+        print('Ой, что-то пошло не так в сохранения снимка');
+      } else {
+        final image = img.Image.fromBytes(
+          width: width,
+          height: height,
+          bytes: pixelData.buffer,
+          // According to https://pub.dev/documentation/fvp/latest/fvp/FVPControllerExtensions/snapshot.html :
+          // rowStride: 4,
+          numChannels: 4,
+        );
+
+        final directory = Directory.current;
+        final filePath =
+            '${directory.path}/data/screenshots/screenshot.png'; // Создайте имя файла // TODO: добавить реализацию отслеживания количества созданных скриншотов, для этого нужно создать отдельную функцию
+
+        img.encodePngFile(filePath, image);
+        print("Сохранено $filePath");
+      }
+    });
   }
 
   String _formatDuration(Duration duration) {
