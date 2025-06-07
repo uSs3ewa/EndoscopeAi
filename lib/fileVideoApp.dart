@@ -5,6 +5,8 @@ import 'package:video_player/video_player.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:fvp/fvp.dart' as fvp;
 import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+
 
 import 'fileChoser.dart';
 
@@ -14,7 +16,12 @@ class FileVideoApp extends StatefulWidget {
   @override
   State<FileVideoApp> createState() => _FileVideoAppState();
 }
+class _Shot {
+  final String path;          // путь к PNG
+  final Duration position;    // время, где сделан кадр
 
+  _Shot(this.path, this.position);
+}
 class _FileVideoAppState extends State<FileVideoApp> {
   late final VideoPlayerController _controller;
   late final Future<void> _initializeVideoPlayerFuture;
@@ -24,11 +31,13 @@ class _FileVideoAppState extends State<FileVideoApp> {
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
   late ScreenshotController _screenshotController;
+  final List<_Shot> _shots = [];   // список миниатюр
+  late Directory _shotsDir;        // директория …/screenshots
 
   @override
   void initState() {
     super.initState();
-
+    _prepareDir();  
     if (FilePicker.checkFile()) {
       _isValidFile = true;
       _screenshotController = ScreenshotController();
@@ -48,7 +57,15 @@ class _FileVideoAppState extends State<FileVideoApp> {
             debugPrint('Ошибка инициализации видео: $error');
           });
     }
+    
   }
+  Future<void> _prepareDir() async {
+  final base = await getApplicationDocumentsDirectory();   // path_provider
+  _shotsDir = Directory('${base.path}/screenshots');
+  if (!await _shotsDir.exists()) {
+    await _shotsDir.create(recursive: true);
+  }
+}
 
   void _updateProgress() {
     if (mounted) {
@@ -58,55 +75,42 @@ class _FileVideoAppState extends State<FileVideoApp> {
       });
     }
   }
+void _seekTo(Duration pos) {
+  _controller.seekTo(pos);
+  if (_isPlaying) _togglePlayPause();   // если было включено - поставим на паузу
+}
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isValidFile) {
-      return Center(
-        child: Screenshot(
-          controller: _screenshotController,
-          child: Scaffold(
-            appBar: AppBar(
-              title: const Text('Видеоплеер'),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            floatingActionButton: getScreenshotButton(),
-            body: Center(
-              child: FutureBuilder(
-                future: _initializeVideoPlayerFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (snapshot.hasError) {
-                      getErrorMessage(snapshot);
-                    }
-                    return getGestureRecognition();
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-            ),
-          ),
+Widget _buildVideo() => getGestureRecognition();
+@override
+Widget build(BuildContext context) {
+  if (!_isValidFile) return _errorScaffold();
+
+  return Scaffold(
+    floatingActionButton: getScreenshotButton(),
+    appBar: AppBar(
+      title: const Text('Видеоплеер'),
+      leading: BackButton(onPressed: () => Navigator.pop(context)),
+    ),
+    body: Row(
+      children: [
+        /// ВИДЕО (растягивается)
+        Expanded(child: _buildVideo()),
+        /// ЛЕНТА СКРИНШОТОВ
+        Container(
+          width: 120,
+          color: Colors.black12,
+          child: _shots.isEmpty
+              ? const Center(child: Text('Нет скриншотов'))
+              : ListView.builder(
+                  itemCount: _shots.length,
+                  itemBuilder: (ctx, i) => _Scrin(shot: _shots[i], onTap: _seekTo),
+                ),
         ),
-      );
-    } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Error'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pushNamed(context, '/');
-            },
-          ),
-        ),
-        body: const Text('Ошибка во время открытия файла'),
-      );
-    }
-  }
+      ],
+    ),
+  );
+}
+
 
   Widget getGestureRecognition() {
     return GestureDetector(
@@ -134,6 +138,13 @@ class _FileVideoAppState extends State<FileVideoApp> {
       ),
       );
   }
+  Widget _errorScaffold() {
+  return Scaffold(
+    appBar: AppBar(title: const Text('Ошибка')),
+    body: const Center(child: Text('Не удалось открыть файл')),
+  );
+}
+
 
   Widget getPauseButton() {
     return Container(
@@ -202,7 +213,7 @@ class _FileVideoAppState extends State<FileVideoApp> {
     final width = _controller.getMediaInfo()!.video![0].codec.width;
     final height = _controller.getMediaInfo()!.video![0].codec.height;
 
-    await _controller.snapshot(width: width, height: height).then((pixelData) {
+    await _controller.snapshot(width: width, height: height).then((pixelData) async {
       if (pixelData == null) {
         print('Ой, что-то пошло не так в сохранения снимка');
       } else {
@@ -215,11 +226,20 @@ class _FileVideoAppState extends State<FileVideoApp> {
           numChannels: 4,
         );
 
-        final directory = Directory.current;
-        final filePath =
-            '${directory.path}/data/screenshots/screenshot.png'; // Создайте имя файла // TODO: добавить реализацию отслеживания количества созданных скриншотов, для этого нужно создать отдельную функцию
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
+        final filePath = '${_shotsDir.path}/$fileName';
+        // СОХРАНЯЕМ В ФАЙЛ
+        final pngBytes = img.encodePng(image);
+        final outFile = File(filePath);
+        await outFile.writeAsBytes(pngBytes);
 
-        img.encodePngFile(filePath, image);
+        // ДИАГНОСТИКА
+        print('Файл записан: $filePath');
+        print('Существует? ${outFile.existsSync()}');
+
+       setState(() {
+        _shots.add(_Shot(filePath, _controller.value.position));
+      });
         print("Сохранено $filePath");
       }
     });
@@ -249,3 +269,84 @@ class _FileVideoAppState extends State<FileVideoApp> {
     super.dispose();
   }
 }
+
+class _Scrin extends StatelessWidget {
+  const _Scrin({
+    Key? key,
+    required this.shot,
+    required this.onTap,
+  }) : super(key: key);
+
+  final _Shot shot;
+  final void Function(Duration) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Material(
+        elevation: 1,                       // лёгкая «тень» карточки
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,       // обрезаем по радиусу
+        child: InkWell(
+          onTap: () => onTap(shot.position),
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              //миниатюра
+              AspectRatio(                   // фиксированное соотношение сторон (16:9)
+                aspectRatio: 16 / 9,
+                child: Image.file(
+                  File(shot.path),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+              ),
+              // лёгкий градиент для читаемости текста 
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.60),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // тайм-код
+              Padding(
+                padding: const EdgeInsets.all(6),
+                child: Text(
+                  _hhmmss(shot.position),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                    shadows: [Shadow(blurRadius: 1, offset: Offset(0, 0))],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // helper
+  String _hhmmss(Duration d) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return d.inHours > 0
+        ? '${two(d.inHours)}:${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}'
+        : '${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}';
+  }
+}
+
+
+
