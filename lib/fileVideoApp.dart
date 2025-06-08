@@ -75,6 +75,8 @@ class _FileVideoAppState extends State<FileVideoApp> {
       });
     }
   }
+
+  
 void _seekTo(Duration pos) {
   _controller.seekTo(pos);
   if (_isPlaying) _togglePlayPause();   // если было включено - поставим на паузу
@@ -171,6 +173,7 @@ Widget build(BuildContext context) {
   }
 
   Widget getCustomSlider(BuildContext context){ // Полоска прогресса
+    _updateProgress();
     return Positioned(
       bottom: 40,
       left: 0,
