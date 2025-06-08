@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:namer_app/indention.dart';
 import 'package:video_player/video_player.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:fvp/fvp.dart' as fvp;
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
-
 
 import 'fileChoser.dart';
 
@@ -16,12 +16,14 @@ class FileVideoApp extends StatefulWidget {
   @override
   State<FileVideoApp> createState() => _FileVideoAppState();
 }
+
 class _Shot {
-  final String path;          // путь к PNG
-  final Duration position;    // время, где сделан кадр
+  final String path; // путь к PNG
+  final Duration position; // время, где сделан кадр
 
   _Shot(this.path, this.position);
 }
+
 class _FileVideoAppState extends State<FileVideoApp> {
   late final VideoPlayerController _controller;
   late final Future<void> _initializeVideoPlayerFuture;
@@ -30,42 +32,42 @@ class _FileVideoAppState extends State<FileVideoApp> {
   bool _isValidFile = false;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
-  late ScreenshotController _screenshotController;
-  final List<_Shot> _shots = [];   // список миниатюр
-  late Directory _shotsDir;        // директория …/screenshots
+  final List<_Shot> _shots = []; // список миниатюр
+  late Directory _shotsDir; // директория …/screenshots
+
+  late FloatingActionButton mfab;
 
   @override
   void initState() {
     super.initState();
-    _prepareDir();  
+    _prepareDir();
     if (FilePicker.checkFile()) {
       _isValidFile = true;
-      _screenshotController = ScreenshotController();
-      _controller =
-          VideoPlayerController.file(File(FilePicker.filePath.toString()))
-            ..initialize().then((_) {
-              setState(() {
-                _totalDuration = _controller.value.duration;
-              });
-              // Обновляем позицию каждые 100 мс
-              _controller.addListener(_updateProgress);
-            });
-
+      _controller = VideoPlayerController.file(
+        File(FilePicker.filePath.toString()),
+      );
       _initializeVideoPlayerFuture = _controller
           .initialize()
+          .then((_) {
+            setState(() {
+              _totalDuration = _controller.value.duration;
+            });
+            // Обновляем позицию каждые 100 мс
+            _controller.addListener(_updateProgress);
+          })
           .catchError((error) {
             debugPrint('Ошибка инициализации видео: $error');
           });
     }
-    
   }
+
   Future<void> _prepareDir() async {
-  final base = await getApplicationDocumentsDirectory();   // path_provider
-  _shotsDir = Directory('${base.path}/screenshots');
-  if (!await _shotsDir.exists()) {
-    await _shotsDir.create(recursive: true);
+    final base = await getApplicationDocumentsDirectory(); // path_provider
+    _shotsDir = Directory('${base.path}/screenshots');
+    if (!await _shotsDir.exists()) {
+      await _shotsDir.create(recursive: true);
+    }
   }
-}
 
   void _updateProgress() {
     if (mounted) {
@@ -76,148 +78,186 @@ class _FileVideoAppState extends State<FileVideoApp> {
     }
   }
 
-  
-void _seekTo(Duration pos) {
-  _controller.seekTo(pos);
-  if (_isPlaying) _togglePlayPause();   // если было включено - поставим на паузу
-}
+  void _seekTo(Duration pos) {
+    _controller.seekTo(pos);
+    if (_isPlaying)
+      _togglePlayPause(); // если было включено - поставим на паузу
+  } 
 
-Widget _buildVideo() => getGestureRecognition();
-@override
-Widget build(BuildContext context) {
-  if (!_isValidFile) return _errorScaffold();
+  Widget _buildVideo() => getGestureRecognition();
+  @override
+  Widget build(BuildContext context) {
+    if (!_isValidFile) return _errorScaffold();
 
-  return Scaffold(
-    floatingActionButton: getScreenshotButton(),
-    appBar: AppBar(
-      title: const Text('Видеоплеер'),
-      leading: BackButton(onPressed: () => Navigator.pop(context)),
-    ),
-    body: Row(
-      children: [
-        /// ВИДЕО (растягивается)
-        Expanded(child: _buildVideo()),
-        /// ЛЕНТА СКРИНШОТОВ
-        Container(
-          width: 120,
-          color: Colors.black12,
-          child: _shots.isEmpty
-              ? const Center(child: Text('Нет скриншотов'))
-              : ListView.builder(
-                  itemCount: _shots.length,
-                  itemBuilder: (ctx, i) => _Scrin(shot: _shots[i], onTap: _seekTo),
+    getScreenshotButton();
+
+    return Scaffold(
+      floatingActionButton: mfab,
+      appBar: AppBar(
+        title: const Text('Видеоплеер'),
+        leading: BackButton(onPressed: () => Navigator.pop(context)),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(5),
+        child: Row(
+          children: [
+            /// ВИДЕО
+            _buildVideo(),
+
+            getIndention(),
+
+            /// ЛЕНТА СКРИНШОТОВ
+            Expanded(
+              child: Card(
+                color: const Color.fromARGB(255, 228, 226, 226),
+                child: Padding(
+                  padding: EdgeInsets.all(7),
+                  child: _shots.isEmpty
+                      ? const Center(child: Text('Нет скриншотов'))
+                      : ListView.builder(
+                          itemCount: _shots.length,
+                          itemBuilder: (ctx, i) =>
+                              _Scrin(shot: _shots[i], onTap: _seekTo),
+                        ),
                 ),
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
-}
-
+      ),
+    );
+  }
 
   Widget getGestureRecognition() {
     return GestureDetector(
       onTap: () {
-        setState(() {_showControls = !_showControls;}
-        );
-        },
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: VideoPlayer(_controller),
-              ),
-              if (_showControls || !_isPlaying) getPauseButton(),
-              if (_showControls || !_isPlaying) getCustomSlider(context),
-              ],
-              )
-              );
+        setState(() {
+          _showControls = !_showControls;
+        });
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            child: VideoPlayer(_controller),
+          ),
+          if (_showControls) getPauseButton(),
+          if (_showControls) getCustomSlider(context),
+        ],
+      ),
+    );
   }
 
   Widget getErrorMessage(AsyncSnapshot snapshot) {
-    return Center(
-      child: Text('Ошибка загрузки видео: ${snapshot.error}'
-      ),
-      );
+    return Center(child: Text('Ошибка загрузки видео: ${snapshot.error}'));
   }
-  Widget _errorScaffold() {
-  return Scaffold(
-    appBar: AppBar(title: const Text('Ошибка')),
-    body: const Center(child: Text('Не удалось открыть файл')),
-  );
-}
 
+  Widget _errorScaffold() {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Ошибка')),
+      body: const Center(child: Text('Не удалось открыть файл')),
+    );
+  }
 
   Widget getPauseButton() {
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 167, 38, 29),
-        shape: BoxShape.circle,),
-        child: IconButton(
-          icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow,color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(
+          _isPlaying ? Icons.pause : Icons.play_arrow,
+          color: Colors.white,
           size: 40,
-          ),
-          onPressed: _togglePlayPause,)
-          ,);
+        ),
+        onPressed: _togglePlayPause,
+      ),
+    );
   }
 
-  Widget getScreenshotButton() {
-    return FloatingActionButton(
-              onPressed: _makeScreenshot,
-              backgroundColor: const Color.fromARGB(255, 252, 232, 232),
-              child: Icon(
-                Icons.camera_alt,
-                color: const Color.fromARGB(255, 65, 63, 63),
-              ),
-            );
+  void getScreenshotButton() {
+    mfab = FloatingActionButton(
+      onPressed: _showControls ? _makeScreenshot: null,
+      backgroundColor: const Color.fromARGB(255, 252, 232, 232),
+      child: Icon(
+        Icons.camera_alt,
+        color: const Color.fromARGB(255, 65, 63, 63),
+      ),
+    );
   }
 
-  Widget getCustomSlider(BuildContext context){ // Полоска прогресса
+  Widget getCustomSlider(BuildContext context) {
+    // Полоска прогресса
     return Positioned(
-      bottom: 40,
-      left: 0,
-      right: 0,
+      bottom: 5,
+      left: 5,
+      right: 5,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 6,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                // ignore: deprecated_member_use
+                const Color.fromARGB(255, 0, 0, 0).withOpacity(0.60),
+                const Color.fromARGB(0, 61, 60, 60),
+              ],
+            ),
           ),
           child: Row(
             children: [
-              Text(_formatDuration(_currentPosition)),
-              Expanded(
-                child: getSlider(),
-                              ),
-                              Text(_formatDuration(_totalDuration)),
-                              ],
-                              ),
-                              ),
-                              );
+              Text(
+                _formatDuration(_currentPosition),
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 221, 217, 217),
+                ),
+              ),
+              Expanded(child: getSlider()),
+              Text(
+                _formatDuration(_totalDuration),
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 175, 171, 171),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  Widget getSlider(){
-    _updateProgress();
+  StatefulWidget getSlider() {
     return Slider(
-      activeColor: const Color.fromARGB(255, 167, 38, 29,),
+      activeColor: const Color.fromARGB(255, 167, 38, 29),
       value: _currentPosition.inMilliseconds.toDouble(),
       min: 0,
       max: _totalDuration.inMilliseconds.toDouble(),
-      onChangeStart: (_) {if (!_isPlaying) _controller.pause();},
-      onChangeEnd: (_) {if (_isPlaying) _controller.play();},
+      onChangeStart: (_) {
+        if (!_isPlaying) _controller.pause();
+      },
+      onChangeEnd: (_) {
+        if (_isPlaying) _controller.play();
+      },
       onChanged: (value) {
         setState(() {
-          _updateProgress();
-        _currentPosition = Duration(milliseconds: value.toInt(),);
-        _controller.seekTo(_currentPosition,);
+          _currentPosition = Duration(milliseconds: value.toInt());
+          _controller.seekTo(_currentPosition);
         });
-        },
-        );
+      },
+    );
   }
 
   void _makeScreenshot() async {
     final width = _controller.getMediaInfo()!.video![0].codec.width;
     final height = _controller.getMediaInfo()!.video![0].codec.height;
 
-    await _controller.snapshot(width: width, height: height).then((pixelData) async {
+    await _controller.snapshot(width: width, height: height).then((
+      pixelData,
+    ) async {
       if (pixelData == null) {
         print('Ой, что-то пошло не так в сохранения снимка');
       } else {
@@ -241,9 +281,9 @@ Widget build(BuildContext context) {
         print('Файл записан: $filePath');
         print('Существует? ${outFile.existsSync()}');
 
-       setState(() {
-        _shots.add(_Shot(filePath, _controller.value.position));
-      });
+        setState(() {
+          _shots.add(_Shot(filePath, _controller.value.position));
+        });
         print("Сохранено $filePath");
       }
     });
@@ -275,11 +315,8 @@ Widget build(BuildContext context) {
 }
 
 class _Scrin extends StatelessWidget {
-  const _Scrin({
-    Key? key,
-    required this.shot,
-    required this.onTap,
-  }) : super(key: key);
+  const _Scrin({Key? key, required this.shot, required this.onTap})
+    : super(key: key);
 
   final _Shot shot;
   final void Function(Duration) onTap;
@@ -289,17 +326,18 @@ class _Scrin extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Material(
-        elevation: 1,                       // лёгкая «тень» карточки
+        elevation: 1, // лёгкая «тень» карточки
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(8),
-        clipBehavior: Clip.antiAlias,       // обрезаем по радиусу
+        clipBehavior: Clip.antiAlias, // обрезаем по радиусу
         child: InkWell(
           onTap: () => onTap(shot.position),
           child: Stack(
             alignment: Alignment.bottomRight,
             children: [
               //миниатюра
-              AspectRatio(                   // фиксированное соотношение сторон (16:9)
+              AspectRatio(
+                // фиксированное соотношение сторон (16:9)
                 aspectRatio: 16 / 9,
                 child: Image.file(
                   File(shot.path),
@@ -308,7 +346,7 @@ class _Scrin extends StatelessWidget {
                   height: double.infinity,
                 ),
               ),
-              // лёгкий градиент для читаемости текста 
+              // лёгкий градиент для читаемости текста
               Positioned.fill(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
@@ -351,6 +389,3 @@ class _Scrin extends StatelessWidget {
         : '${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}';
   }
 }
-
-
-

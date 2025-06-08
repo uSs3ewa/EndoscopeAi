@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:path/path.dart' as p;
 
@@ -13,7 +12,7 @@ class FilePicker {
     return true;
   }
 
-  static void pickFile(BuildContext context) async {
+  static Future<void> pickFile() async {
     fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
       type: fp.FileType.video, // Или конкретный тип файла
     );
@@ -30,6 +29,5 @@ class FilePicker {
     } else {
       print('Отменено пользователем');
     }
-    Navigator.pushNamed(context, '/fileVideoPlayer');
   }
 }

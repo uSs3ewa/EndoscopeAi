@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'customButton.dart';
 import 'fileChoser.dart';
+import 'indention.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -28,7 +29,7 @@ class HomePage extends StatelessWidget {
   Widget getVideoPlayerButton(context){
     return ElevatedButton(
               onPressed: () async {
-                FilePicker.pickFile(context);
+                FilePicker.pickFile().then((_) {Navigator.pushNamed(context, '/fileVideoPlayer');});
               },
               child: const Text('Открыть видеоплеер'),
             );
@@ -42,7 +43,4 @@ class HomePage extends StatelessWidget {
     return getCustomButton(context, 'Открыть стриминговый плеер', '/streamVideoPlayer');
   }
 
-  Widget getIndention(){
-    return const SizedBox(height: 20);
-  }
 }
