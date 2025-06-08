@@ -173,14 +173,13 @@ Widget build(BuildContext context) {
   }
 
   Widget getCustomSlider(BuildContext context){ // Полоска прогресса
-    _updateProgress();
     return Positioned(
       bottom: 40,
       left: 0,
       right: 0,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: 8,
+          horizontal: 6,
           ),
           child: Row(
             children: [
@@ -196,6 +195,7 @@ Widget build(BuildContext context) {
   }
 
   Widget getSlider(){
+    _updateProgress();
     return Slider(
       activeColor: const Color.fromARGB(255, 167, 38, 29,),
       value: _currentPosition.inMilliseconds.toDouble(),
@@ -205,6 +205,7 @@ Widget build(BuildContext context) {
       onChangeEnd: (_) {if (_isPlaying) _controller.play();},
       onChanged: (value) {
         setState(() {
+          _updateProgress();
         _currentPosition = Duration(milliseconds: value.toInt(),);
         _controller.seekTo(_currentPosition,);
         });
