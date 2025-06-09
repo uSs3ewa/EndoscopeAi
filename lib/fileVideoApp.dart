@@ -1,12 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:namer_app/indention.dart';
 import 'package:video_player/video_player.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:fvp/fvp.dart' as fvp;
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
+import 'dart:isolate';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 
 import 'fileChoser.dart';
 
@@ -17,11 +21,14 @@ class FileVideoApp extends StatefulWidget {
   State<FileVideoApp> createState() => _FileVideoAppState();
 }
 
+enum _ShotState { Good, Pending, Error }
+
 class _Shot {
   final String path; // путь к PNG
   final Duration position; // время, где сделан кадр
+  _ShotState state;
 
-  _Shot(this.path, this.position);
+  _Shot(this.path, this.position, {this.state = _ShotState.Good});
 }
 
 class _FileVideoAppState extends State<FileVideoApp> {
@@ -82,7 +89,7 @@ class _FileVideoAppState extends State<FileVideoApp> {
     _controller.seekTo(pos);
     if (_isPlaying)
       _togglePlayPause(); // если было включено - поставим на паузу
-  } 
+  }
 
   Widget _buildVideo() => getGestureRecognition();
   @override
@@ -179,7 +186,7 @@ class _FileVideoAppState extends State<FileVideoApp> {
 
   void getScreenshotButton() {
     mfab = FloatingActionButton(
-      onPressed: _showControls ? _makeScreenshot: null,
+      onPressed: _showControls ? _makeScreenshot : null,
       backgroundColor: const Color.fromARGB(255, 252, 232, 232),
       child: Icon(
         Icons.camera_alt,
@@ -254,39 +261,60 @@ class _FileVideoAppState extends State<FileVideoApp> {
   void _makeScreenshot() async {
     final width = _controller.getMediaInfo()!.video![0].codec.width;
     final height = _controller.getMediaInfo()!.video![0].codec.height;
+    final controllerPosition = _controller.value.position;
 
-    await _controller.snapshot(width: width, height: height).then((
-      pixelData,
-    ) async {
+    // Specify screenshot output
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
+    final filePath = '${_shotsDir.path}/$fileName';
+
+    final _Shot screenshotVisual = _Shot(
+      filePath,
+      controllerPosition,
+      state: _ShotState.Pending,
+    );
+
+    _shots.add(screenshotVisual);
+
+    try {
+      // read current frame
+      final pixelData = await _controller.snapshot(
+        width: width,
+        height: height,
+      );
+
       if (pixelData == null) {
         print('Ой, что-то пошло не так в сохранения снимка');
-      } else {
-        final image = img.Image.fromBytes(
-          width: width,
-          height: height,
-          bytes: pixelData.buffer,
-          // According to https://pub.dev/documentation/fvp/latest/fvp/FVPControllerExtensions/snapshot.html :
-          // rowStride: 4,
-          numChannels: 4,
-        );
-
-        final fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
-        final filePath = '${_shotsDir.path}/$fileName';
-        // СОХРАНЯЕМ В ФАЙЛ
-        final pngBytes = img.encodePng(image);
-        final outFile = File(filePath);
-        await outFile.writeAsBytes(pngBytes);
-
-        // ДИАГНОСТИКА
-        print('Файл записан: $filePath');
-        print('Существует? ${outFile.existsSync()}');
-
-        setState(() {
-          _shots.add(_Shot(filePath, _controller.value.position));
-        });
-        print("Сохранено $filePath");
+        return;
       }
-    });
+
+      // Allocate recources for image by width and height
+      final image = img.Image.fromBytes(
+        width: width,
+        height: height,
+        bytes: pixelData.buffer,
+        numChannels:
+            4, // According to https://pub.dev/documentation/fvp/latest/fvp/FVPControllerExtensions/snapshot.html :
+      );
+
+      // Decode RGB data to PNG in isolate due to complexity of operation
+      final pngBytes = await compute((im) => img.encodePng(im), image);
+
+      // Save
+      final outFile = File(filePath);
+      await outFile.writeAsBytes(pngBytes);
+
+      // Update screenshot menu
+      setState(() {
+        screenshotVisual.state = _ShotState.Good;
+      });
+      print("Сохранено $filePath");
+    } catch (error) {
+      setState(() {
+        screenshotVisual.state = _ShotState.Error;
+      });
+
+      print('ОШИБКА СОЗАДНИЯ СКРИНШОТА: $error');
+    }
   }
 
   String _formatDuration(Duration duration) {
@@ -339,12 +367,7 @@ class _Scrin extends StatelessWidget {
               AspectRatio(
                 // фиксированное соотношение сторон (16:9)
                 aspectRatio: 16 / 9,
-                child: Image.file(
-                  File(shot.path),
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
+                child: _getPreview(),
               ),
               // лёгкий градиент для читаемости текста
               Positioned.fill(
@@ -379,6 +402,24 @@ class _Scrin extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _getPreview() {
+    switch (shot.state) {
+      case _ShotState.Good: // Image exists -> draw it
+        return Image.file(
+          File(shot.path),
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+        );
+        throw UnimplementedError();
+      case _ShotState.Pending:
+        return CircularProgressIndicator();
+      case _ShotState.Error:
+        // TODO: Handle this case.
+        throw Icon(Icons.error, color: Colors.red);
+    }
   }
 
   // helper
