@@ -1,28 +1,34 @@
+// ====================================================
+//  Главное окно приложения, на котором производится отрисовка
+// ====================================================
 import 'package:flutter/material.dart';
 
-import 'streamApp.dart';
-import 'homePage.dart';
-import 'recordingsApp.dart';
-import 'fileVideoApp.dart';
+import 'pages/file_video_page.dart';
+import 'pages/home_page.dart';
+import 'pages/recordings_page.dart';
+import 'routes.dart';
+import 'pages/stream_page.dart';
 
+//  Главное окно приложения, на котором производится отрисовка
 class App extends StatelessWidget {
   const App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Video Player App',
+      title: 'EncodescopeAI',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromARGB(255, 90, 6, 201),
         ),
       ),
-      initialRoute: '/',
+      initialRoute: Routes.root,
       routes: {
-        '/recordings': (context) => RecordingsApp(),
-        '/': (context) => const HomePage(),
-        '/fileVideoPlayer': (context) => const FileVideoApp(),
-        '/streamVideoPlayer': (context) => StreamPlayerApp(),
+        // инициализация путей и окон
+        Routes.recordings: (context) => RecordingsPage(),
+        Routes.homePage: (context) => const HomePage(),
+        Routes.fileVideoPlayer: (context) => const FileVidePlayerPage(),
+        Routes.streamVideoPlayer: (context) => StreamPlayerPage(),
       },
     );
   }
