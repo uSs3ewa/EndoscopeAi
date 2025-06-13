@@ -8,6 +8,7 @@ class Routes {
   static final streamVideoPlayer = '/streamVideoPlayer';
   static final recordings = '/recordings';
   static final homePage = '/';
+  static final annotate = '/annotate';
 
   static final root = homePage;
 }

@@ -24,6 +24,8 @@ dependencies:
     git:
       url: https://github.com/GooseKIller/vosk-flutter.git
       ref: master
+  xml: ^6.5.0            # генерация SVG-разметки
+  flutter_svg: ^2.0.9    #  читать/показывать svg
 
 dev_dependencies:
   flutter_test:
@@ -33,4 +35,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-  - assets\models\vosk-model-small-ru-0.22.zip
+  - assets/models/vosk-model-small-ru-0.22.zip

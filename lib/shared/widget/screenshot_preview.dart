@@ -1,16 +1,18 @@
 // ====================================================
-//  Файл содержит ui для отобрадения скриншота
+//  Файл содержит ui для отображения скриншота
 // ====================================================
-import 'package:flutter/material.dart';
+
 import 'dart:io';
+import 'package:flutter/material.dart';
+import '../../routes.dart';              // для навигации
 
 // Состояние, определяющее степень загрузки миниатюры
 enum ScreenshotPreviewState { good, pending, error }
 
-// Модель с данными о превьюшки камшота
+// Модель с данными о превьюшке кадра
 class ScreenshotPreviewModel {
-  final String path; // путь к PNG
-  final Duration position; // время, где сделан кадр
+  final String path;            // путь к PNG
+  final Duration position;      // время, где сделан кадр
   ScreenshotPreviewState state; // состояние загрузки
 
   ScreenshotPreviewModel(
@@ -20,11 +22,11 @@ class ScreenshotPreviewModel {
   });
 }
 
-// UI превьюшка миниатюры скриншоты
+// UI-превьюшка миниатюры скриншота
 class ScreenshotPreviewView extends StatelessWidget {
   /* 
    * `model` - модель с данными о миниатюре
-   * `onTab` - действие при нажатии
+   * `onTap`  - действие при обычном нажатии (перемотка видео)
   */
   const ScreenshotPreviewView({
     super.key,
@@ -45,7 +47,14 @@ class ScreenshotPreviewView extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias, // обрезаем по радиусу
         child: InkWell(
-          onTap: () => onTap(model.position),
+          onTap: () => onTap(model.position),          // перемотка видео
+          onDoubleTap: () {                            // Переход по двойному нажатию
+            Navigator.pushNamed(
+              context,
+              Routes.annotate,
+              arguments: model.path,
+            );
+          },
           child: _createMinimalisticPreview(),
         ),
       ),
@@ -57,10 +66,9 @@ class ScreenshotPreviewView extends StatelessWidget {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        //миниатюра
+        // миниатюра
         AspectRatio(
-          // фиксированное соотношение сторон (16:9)
-          aspectRatio: 16 / 9,
+          aspectRatio: 16 / 9, // фиксированное соотношение сторон (16:9)
           child: _createPreview(),
         ),
         // лёгкий градиент для читаемости текста
@@ -95,21 +103,20 @@ class ScreenshotPreviewView extends StatelessWidget {
   // Создать изображение
   Widget _createPreview() {
     switch (model.state) {
-      case ScreenshotPreviewState.good: // Изображение успешно згрузилось
+      case ScreenshotPreviewState.good: // изображение успешно загружено
         return Image.file(
           File(model.path),
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
         );
-      case ScreenshotPreviewState.pending: // Изображение все еще загружается
-        return SizedBox.square(
+      case ScreenshotPreviewState.pending: // изображение ещё загружается
+        return const SizedBox.square(
           dimension: 5,
           child: CircularProgressIndicator(),
         );
-      case ScreenshotPreviewState.error: // Ошибка загрузки
-        // TODO: Handle this case.
-        throw Icon(Icons.error, color: Colors.red);
+      case ScreenshotPreviewState.error: // ошибка загрузки
+        return const Icon(Icons.error, color: Colors.red);
     }
   }
 
@@ -121,3 +128,4 @@ class ScreenshotPreviewView extends StatelessWidget {
         : '${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}';
   }
 }
+
