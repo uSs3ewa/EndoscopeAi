@@ -35,9 +35,25 @@ class HomePage extends StatelessWidget {
   Widget _createVideoPlayerButton(context) {
     return ElevatedButton(
       onPressed: () async {
-        FilePicker.pickFile().then((_) {
-          Navigator.pushNamed(context, Routes.fileVideoPlayer);
-        });
+        FilePicker.pickFile()
+            .then((_) {
+              Navigator.pushNamed(context, Routes.fileVideoPlayer);
+            })
+            .onError(
+              (error, tr) => showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Ошибка открытия файла'),
+                  content: Text('$error'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('Ok'),
+                    ),
+                  ],
+                ),
+              ),
+            );
       },
       child: const Text('Открыть видеоплеер'),
     );
