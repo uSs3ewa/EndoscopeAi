@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/rendering.dart'; 
 import 'package:path/path.dart' as p;
-import 'package:xml/xml.dart';
 
 import 'shapes.dart';
 
@@ -21,91 +21,94 @@ class AnnotatePage extends StatefulWidget {
 
 class _AnnotatePageState extends State<AnnotatePage> {
   final _globalKey = GlobalKey();
-
-  // палитра и инструменты
+  final _imgKey    = GlobalKey();
+  Size   _imgSize  = Size.zero;
 
   static const _palette = [
     Color(0xFF0072B2),
     Color(0xFFE69F00),
     Color(0xFF009E73),
   ];
-
   Color _color = _palette.first;
   Tool  _tool  = Tool.pen;
 
-  // холст
-
   final _elements = <Shape>[];
-  Shape? _draft;              // фигура
+  Shape? _draft;
 
-  // для перемещения
   Shape?  _selected;
-  Offset? _lastPos;
-
-  // история
+  Offset? _lastRel;
 
   final _history = <List<Shape>>[];
   int   _histIx  = -1;
-
-  void _commitState() {
-    final snap = _elements.map((e) => e.clone()).toList();
-    if (_histIx < _history.length - 1) {
-      _history.removeRange(_histIx + 1, _history.length);
-    }
-    _history.add(snap);
+  void _commit() {
+    _history.removeRange(_histIx + 1, _history.length);
+    _history.add(_elements.map((e) => e.clone()).toList());
     _histIx = _history.length - 1;
   }
 
-  // UI
+  Offset _toRel(Offset p) {
+    final dx = (p.dx / _imgSize.width).clamp(0.0, 1.0);
+    final dy = (p.dy / _imgSize.height).clamp(0.0, 1.0);
+    return Offset(dx, dy);
+  }
+
+  Offset _clampLocal(Offset p) => Offset(
+        p.dx.clamp(0.0, _imgSize.width),
+        p.dy.clamp(0.0, _imgSize.height),
+      );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Аннотация скрина'),
-        actions: [
-          IconButton(icon: const Icon(Icons.undo), onPressed: _undo),
-          IconButton(icon: const Icon(Icons.redo), onPressed: _redo),
-          IconButton(icon: const Icon(Icons.save), onPressed: _saveSvg),
-        ],
-      ),
-      body: Column(
-        children: [
-          _buildToolbar(),
-          Expanded(
-            child: Center(
-              child: RepaintBoundary(
-                key: _globalKey,
-                child: GestureDetector(
-                  onPanStart: _onStart,
-                  onPanUpdate: _onUpdate,
-                  onPanEnd:   _onEnd,
-                  child: Stack(
-                    children: [
-                      Image.file(File(widget.imagePath)),
-                      Positioned.fill(
-                        child: CustomPaint(painter: _Painter(_elements, _draft)),
+      appBar: AppBar(title: const Text('Annotation'), actions: [
+        IconButton(icon: const Icon(Icons.undo), onPressed: _undo),
+        IconButton(icon: const Icon(Icons.redo), onPressed: _redo),
+        IconButton(icon: const Icon(Icons.save), onPressed: _saveSvg),
+      ]),
+      body: Column(children: [
+        _toolbar(),
+        Expanded(
+          child: Center(
+            child: RepaintBoundary(
+              key: _globalKey,
+              child: LayoutBuilder(builder: (_, __) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  final ctx = _imgKey.currentContext;
+                  if (ctx != null) {
+                    final sz = ctx.size ?? Size.zero;
+                    if (sz != _imgSize) setState(() => _imgSize = sz);
+                  }
+                });
+                return GestureDetector(
+                  onPanStart: _start,
+                  onPanUpdate: _update,
+                  onPanEnd:   _end,
+                  child: Stack(children: [
+                    Image.file(File(widget.imagePath), key: _imgKey),
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _Painter(_elements, _draft, _imgSize),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
+                  ]),
+                );
+              }),
             ),
           ),
-        ],
-      ),
+        ),
+      ]),
     );
   }
 
-  Widget _buildToolbar() => Padding(
+  Widget _toolbar() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(children: [
           for (final c in _palette) _colorBtn(c),
           const SizedBox(width: 20),
-          _toolBtn(Icons.edit,           Tool.pen),
-          _toolBtn(Icons.crop_square,    Tool.rect),
-          _toolBtn(Icons.circle_outlined,Tool.circle),
-          _toolBtn(Icons.open_with,      Tool.move),
+          _toolBtn(Icons.edit, Tool.pen),
+          _toolBtn(Icons.crop_square, Tool.rect),
+          _toolBtn(Icons.circle_outlined, Tool.circle),
+          _toolBtn(Icons.open_with, Tool.move),
         ]),
       );
 
@@ -113,9 +116,11 @@ class _AnnotatePageState extends State<AnnotatePage> {
         onTap: () => setState(() => _color = c),
         child: Container(
           margin: const EdgeInsets.only(right: 6),
-          width: 24, height: 24,
+          width: 24,
+          height: 24,
           decoration: BoxDecoration(
-            color: c, shape: BoxShape.circle,
+            color: c,
+            shape: BoxShape.circle,
             border: Border.all(
               color: _color == c
                   ? Theme.of(context).colorScheme.onPrimary
@@ -127,20 +132,21 @@ class _AnnotatePageState extends State<AnnotatePage> {
       );
 
   Widget _toolBtn(IconData i, Tool t) => IconButton(
-        icon: Icon(i, color: _tool == t
-            ? Theme.of(context).colorScheme.primary
-            : null),
+        icon: Icon(i,
+            color: _tool == t ? Theme.of(context).colorScheme.primary : null),
         onPressed: () => setState(() => _tool = t),
       );
 
-  // жесты
+  // gestures
+  void _start(DragStartDetails d) => setState(() {
+        final pos = _clampLocal(d.localPosition);
+        final rel = _toRel(pos);
 
-  void _onStart(DragStartDetails d) => setState(() {
         if (_tool == Tool.move) {
           for (final s in _elements.reversed) {
-            if (s.hitTest(d.localPosition)) {
+            if (s.hitTest(pos, _imgSize)) {
               _selected = s;
-              _lastPos  = d.localPosition;
+              _lastRel  = rel;
               break;
             }
           }
@@ -149,52 +155,50 @@ class _AnnotatePageState extends State<AnnotatePage> {
 
         switch (_tool) {
           case Tool.pen:
-            _draft = PenShape([d.localPosition], _color);
+            _draft = PenShape([rel], _color);
           case Tool.rect:
-            _draft = RectShape(d.localPosition, d.localPosition, _color);
+            _draft = RectShape(rel, rel, _color);
           case Tool.circle:
-            _draft = CircleShape(d.localPosition, d.localPosition, _color);
+            _draft = CircleShape(rel, rel, _color);
           default:
             break;
         }
       });
 
-  void _onUpdate(DragUpdateDetails d) => setState(() {
-        if (_tool == Tool.move && _selected != null && _lastPos != null) {
-          final delta = d.localPosition - _lastPos!;
-          _selected!.translate(delta);
-          _lastPos = d.localPosition;
+  void _update(DragUpdateDetails d) => setState(() {
+        final pos = _clampLocal(d.localPosition);
+        final rel = _toRel(pos);
+
+        if (_tool == Tool.move && _selected != null && _lastRel != null) {
+          _selected!.translateRel(rel - _lastRel!);
+          _lastRel = rel;
           return;
         }
 
         if (_draft is PenShape) {
-          (_draft as PenShape).points.add(d.localPosition);
+          (_draft as PenShape).pts.add(rel);
         } else if (_draft is RectShape) {
-          (_draft as RectShape).p2 = d.localPosition;
+          (_draft as RectShape).p2 = rel;
         } else if (_draft is CircleShape) {
-          (_draft as CircleShape).edge = d.localPosition;
+          (_draft as CircleShape).b = rel;
         }
       });
 
-  void _onEnd(DragEndDetails d) => setState(() {
+  void _end(DragEndDetails d) => setState(() {
         if (_tool == Tool.move) {
           _selected = null;
-          _lastPos  = null;
-          _commitState();
+          _lastRel  = null;
+          _commit();
           return;
         }
-
         if (_draft != null) {
           _elements.add(_draft!.clone());
           _draft = null;
-          _commitState();
+          _commit();
         }
       });
 
-  // Undo / Redo
-
-
-
+  // undo / redo
   void _undo() {
     if (_histIx > 0) {
       setState(() {
@@ -217,22 +221,20 @@ class _AnnotatePageState extends State<AnnotatePage> {
     }
   }
 
-  // Сохранение
-
+  // save SVG
   Future<void> _saveSvg() async {
     try {
-      // 1) снимаем размеры холста
-      final boundary =
-          _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final ui.Image img = await boundary.toImage(pixelRatio: 1.0);
+      final ui.Image img =
+          await (_globalKey.currentContext!.findRenderObject()
+                  as RenderRepaintBoundary)
+              .toImage(pixelRatio: 1.0);
       final w = img.width, h = img.height;
 
-      // 2) фон → base64
       final b64 = base64Encode(await File(widget.imagePath).readAsBytes());
 
-      // 3) SVG-контент
-      final shapesXml =
-          _elements.map((e) => e.toSvg().toXmlString()).join('\n  ');
+      final shapesXml = _elements
+          .map((e) => e.toSvg(Size(w.toDouble(), h.toDouble())).toXmlString())
+          .join('\n  ');
       final svg = '''
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
@@ -244,23 +246,18 @@ class _AnnotatePageState extends State<AnnotatePage> {
 </svg>
 ''';
 
-      // 4) диалог «Сохранить как…»
-      final basename =
-          'annotate_${p.basenameWithoutExtension(widget.imagePath)}.svg';
       final path = await FilePicker.platform.saveFile(
-        dialogTitle: 'Сохранить аннотацию',
-        fileName: basename,
+        dialogTitle: 'Save annotation',
+        fileName:
+            'annotate_${p.basenameWithoutExtension(widget.imagePath)}.svg',
         type: FileType.custom,
         allowedExtensions: ['svg'],
       );
-
-      if (path == null) return; // нажал «Отмена»
-
+      if (path == null) return;
       await File(path).writeAsString(svg);
-
       if (context.mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Сохранено: ${p.basename(path)}')));
+            .showSnackBar(SnackBar(content: Text('Saved: ${p.basename(path)}')));
       }
     } catch (e) {
       debugPrint('Save SVG error: $e');
@@ -268,24 +265,26 @@ class _AnnotatePageState extends State<AnnotatePage> {
   }
 }
 
-// Painter
-
+// painter
 class _Painter extends CustomPainter {
   final List<Shape> shapes;
   final Shape? draft;
-  _Painter(this.shapes, this.draft);
+  final Size canvasSize;
+  _Painter(this.shapes, this.draft, this.canvasSize);
 
   @override
-  void paint(Canvas c, Size s) {
+  void paint(Canvas c, Size _) {
     final p = Paint();
     for (final s in shapes) {
-      s.paint(c, p);
+      s.paint(c, p, canvasSize);
     }
-    draft?.paint(c, p);
+    draft?.paint(c, p, canvasSize);
   }
 
   @override
   bool shouldRepaint(covariant _Painter old) =>
-      old.shapes != shapes || old.draft != draft;
+      old.shapes != shapes ||
+      old.draft != draft ||
+      old.canvasSize != canvasSize;
 }
 
