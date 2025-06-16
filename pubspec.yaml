@@ -20,12 +20,11 @@ dependencies:
   path: ^1.9.1
   fvp: ^0.32.1
   image: ^4.5.4
-  vosk_flutter: 
-    git:
-      url: https://github.com/GooseKIller/vosk-flutter.git
-      ref: master
-  xml: ^6.5.0            # генерация SVG-разметки
-  flutter_svg: ^2.0.9    #  читать/показывать svg
+  camera: ^0.10.5+2
+  camera_windows: ^0.2.6+2
+  ffmpeg_kit_flutter: ^5.1.0 
+  permission_handler: ^10.4.0 
+  camera_platform_interface: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -34,5 +33,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-  - assets/models/vosk-model-small-ru-0.22.zip
