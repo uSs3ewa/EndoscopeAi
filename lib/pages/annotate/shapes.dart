@@ -1,13 +1,14 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart';      // listEquals
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 
 Offset _abs(Size s, Offset rel) => Offset(rel.dx * s.width, rel.dy * s.height);
 String _hx(Color c) => '#${c.value.toRadixString(16).padLeft(8, '0').substring(2)}';
 
 abstract class Shape {
-  Shape(this.color);
+  Shape(this.color, this.strokeWidth);
   final Color color;
+  final double strokeWidth;
 
   void paint(Canvas c, Paint p, Size cs);
   XmlNode toSvg(Size cs);
@@ -21,13 +22,13 @@ abstract class Shape {
 // Pen
 class PenShape extends Shape {
   List<Offset> pts; // relative
-  PenShape(this.pts, Color col) : super(col);
+  PenShape(this.pts, Color col, double strokeWidth) : super(col, strokeWidth);
 
   @override
   void paint(Canvas c, Paint p, Size cs) {
     p
       ..color = color
-      ..strokeWidth = 3
+      ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
     final path = Path()
       ..moveTo(_abs(cs, pts.first).dx, _abs(cs, pts.first).dy);
@@ -48,7 +49,7 @@ class PenShape extends Shape {
                 .join(' ')),
         XmlAttribute(XmlName('fill'), 'none'),
         XmlAttribute(XmlName('stroke'), _hx(color)),
-        XmlAttribute(XmlName('stroke-width'), '3'),
+        XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
       ]);
 
   @override
@@ -63,17 +64,20 @@ class PenShape extends Shape {
   }
 
   @override
-  Shape clone() => PenShape(List.of(pts), color);
+  Shape clone() => PenShape(List.of(pts), color, strokeWidth);
 
   @override
   bool compareTo(Shape other) =>
-      other is PenShape && listEquals(other.pts, pts) && other.color == color;
+      other is PenShape &&
+      listEquals(other.pts, pts) &&
+      other.color == color &&
+      other.strokeWidth == strokeWidth;
 }
 
 // Rect
 class RectShape extends Shape {
   Offset p1, p2; // relative
-  RectShape(this.p1, this.p2, Color col) : super(col);
+  RectShape(this.p1, this.p2, Color col, double strokeWidth) : super(col, strokeWidth);
 
   Rect _rect(Size cs) => Rect.fromPoints(_abs(cs, p1), _abs(cs, p2));
 
@@ -81,7 +85,7 @@ class RectShape extends Shape {
   void paint(Canvas c, Paint p, Size cs) {
     p
       ..color = color.withOpacity(0.6)
-      ..strokeWidth = 3
+      ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
     c.drawRect(_rect(cs), p);
   }
@@ -96,7 +100,7 @@ class RectShape extends Shape {
       XmlAttribute(XmlName('height'), r.height.toStringAsFixed(1)),
       XmlAttribute(XmlName('fill'), 'none'),
       XmlAttribute(XmlName('stroke'), _hx(color)),
-      XmlAttribute(XmlName('stroke-width'), '3'),
+      XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
     ]);
   }
 
@@ -110,23 +114,27 @@ class RectShape extends Shape {
   }
 
   @override
-  Shape clone() => RectShape(p1, p2, color);
+  Shape clone() => RectShape(p1, p2, color, strokeWidth);
 
   @override
   bool compareTo(Shape o) =>
-      o is RectShape && o.p1 == p1 && o.p2 == p2 && o.color == color;
+      o is RectShape &&
+      o.p1 == p1 &&
+      o.p2 == p2 &&
+      o.color == color &&
+      o.strokeWidth == strokeWidth;
 }
 
 // Circle 
 class CircleShape extends Shape {
   Offset a, b; // opposite corners (rel)
-  CircleShape(this.a, this.b, Color col) : super(col);
+  CircleShape(this.a, this.b, Color col, double strokeWidth) : super(col, strokeWidth);
 
   @override
   void paint(Canvas c, Paint p, Size cs) {
     p
       ..color = color.withOpacity(0.6)
-      ..strokeWidth = 3
+      ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
     final rect = Rect.fromPoints(_abs(cs, a), _abs(cs, b));
     c.drawCircle(rect.center, rect.shortestSide / 2, p);
@@ -141,7 +149,7 @@ class CircleShape extends Shape {
       XmlAttribute(XmlName('r'), (rect.shortestSide / 2).toStringAsFixed(1)),
       XmlAttribute(XmlName('fill'), 'none'),
       XmlAttribute(XmlName('stroke'), _hx(color)),
-      XmlAttribute(XmlName('stroke-width'), '3'),
+      XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
     ]);
   }
 
@@ -158,10 +166,14 @@ class CircleShape extends Shape {
   }
 
   @override
-  Shape clone() => CircleShape(a, b, color);
+  Shape clone() => CircleShape(a, b, color, strokeWidth);
 
   @override
   bool compareTo(Shape o) =>
-      o is CircleShape && o.a == a && o.b == b && o.color == color;
+      o is CircleShape &&
+      o.a == a &&
+      o.b == b &&
+      o.color == color &&
+      o.strokeWidth == strokeWidth;
 }
 

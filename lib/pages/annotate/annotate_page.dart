@@ -32,6 +32,9 @@ class _AnnotatePageState extends State<AnnotatePage> {
   Color _color = _palette.first;
   Tool  _tool  = Tool.pen;
 
+  double _strokeWidth = 3.0;
+  final List<double> _availableWidths = [1.0, 3.0, 5.0, 8.0, 12.0];
+
   final _elements = <Shape>[];
   Shape? _draft;
 
@@ -103,8 +106,16 @@ class _AnnotatePageState extends State<AnnotatePage> {
   Widget _toolbar() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(children: [
+          // Выбор цвета с выделением
           for (final c in _palette) _colorBtn(c),
           const SizedBox(width: 20),
+          
+          // Выбор толщины с выделением
+          Text('Толщина: ', style: TextStyle(fontSize: 14)),
+          for (final w in _availableWidths) _widthBtn(w),
+          const SizedBox(width: 20),
+          
+          // Выбор инструментов с выделением
           _toolBtn(Icons.edit, Tool.pen),
           _toolBtn(Icons.crop_square, Tool.rect),
           _toolBtn(Icons.circle_outlined, Tool.circle),
@@ -116,26 +127,59 @@ class _AnnotatePageState extends State<AnnotatePage> {
         onTap: () => setState(() => _color = c),
         child: Container(
           margin: const EdgeInsets.only(right: 6),
-          width: 24,
-          height: 24,
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: c,
             shape: BoxShape.circle,
-            border: Border.all(
-              color: _color == c
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : Colors.black26,
-              width: 2,
+            color: _color == c ? Colors.grey[300] : Colors.transparent,
+          ),
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: c,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.black26,
+                width: 1,
+              ),
             ),
           ),
         ),
       );
 
-  Widget _toolBtn(IconData i, Tool t) => IconButton(
-        icon: Icon(i,
-            color: _tool == t ? Theme.of(context).colorScheme.primary : null),
-        onPressed: () => setState(() => _tool = t),
+  Widget _widthBtn(double width) => GestureDetector(
+        onTap: () => setState(() => _strokeWidth = width),
+        child: Container(
+          margin: const EdgeInsets.only(right: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: _strokeWidth == width ? Colors.grey[300] : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            width.toStringAsFixed(0),
+            style: TextStyle(
+              fontWeight: _strokeWidth == width ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
       );
+
+  Widget _toolBtn(IconData i, Tool t) => Container(
+        margin: const EdgeInsets.only(right: 4),
+        decoration: BoxDecoration(
+          color: _tool == t ? Colors.grey[300] : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: IconButton(
+          icon: Icon(i,
+              color: _tool == t
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.black54),
+          onPressed: () => setState(() => _tool = t),
+        ),
+      );
+
 
   // gestures
   void _start(DragStartDetails d) => setState(() {
@@ -155,11 +199,11 @@ class _AnnotatePageState extends State<AnnotatePage> {
 
         switch (_tool) {
           case Tool.pen:
-            _draft = PenShape([rel], _color);
+            _draft = PenShape([rel], _color, _strokeWidth); 
           case Tool.rect:
-            _draft = RectShape(rel, rel, _color);
+            _draft = RectShape(rel, rel, _color, _strokeWidth); 
           case Tool.circle:
-            _draft = CircleShape(rel, rel, _color);
+            _draft = CircleShape(rel, rel, _color, _strokeWidth); 
           default:
             break;
         }
