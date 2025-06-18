@@ -37,7 +37,7 @@ class _AnnotatePageState extends State<AnnotatePage> {
 
   final _elements = <Shape>[];
   Shape? _draft;
-
+  String _notes = '';
   Shape?  _selected;
   Offset? _lastRel;
 
@@ -60,48 +60,106 @@ class _AnnotatePageState extends State<AnnotatePage> {
         p.dy.clamp(0.0, _imgSize.height),
       );
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Annotation'), actions: [
-        IconButton(icon: const Icon(Icons.undo), onPressed: _undo),
-        IconButton(icon: const Icon(Icons.redo), onPressed: _redo),
-        IconButton(icon: const Icon(Icons.save), onPressed: _saveSvg),
-      ]),
-      body: Column(children: [
-        _toolbar(),
-        Expanded(
-          child: Center(
-            child: RepaintBoundary(
-              key: _globalKey,
-              child: LayoutBuilder(builder: (_, __) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  final ctx = _imgKey.currentContext;
-                  if (ctx != null) {
-                    final sz = ctx.size ?? Size.zero;
-                    if (sz != _imgSize) setState(() => _imgSize = sz);
-                  }
-                });
-                return GestureDetector(
-                  onPanStart: _start,
-                  onPanUpdate: _update,
-                  onPanEnd:   _end,
-                  child: Stack(children: [
-                    Image.file(File(widget.imagePath), key: _imgKey),
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: _Painter(_elements, _draft, _imgSize),
-                      ),
+      appBar: AppBar(
+        title: const Text('Annotation'),
+        actions: [
+          IconButton(icon: const Icon(Icons.undo), onPressed: _undo),
+          IconButton(icon: const Icon(Icons.redo), onPressed: _redo),
+          IconButton(icon: const Icon(Icons.save), onPressed: _saveSvg),
+        ],
+      ),
+      body: Row(
+        children: [
+          // Скрин с фигурами
+          Expanded(
+            flex: 3,
+            child: Column(
+              children: [
+                _toolbar(),
+                Expanded(
+                  child: Center(
+                    child: RepaintBoundary(
+                      key: _globalKey,
+                      child: LayoutBuilder(builder: (_, __) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final ctx = _imgKey.currentContext;
+                          if (ctx != null) {
+                            final sz = ctx.size ?? Size.zero;
+                            if (sz != _imgSize) setState(() => _imgSize = sz);
+                          }
+                        });
+                        return GestureDetector(
+                          onPanStart: _start,
+                          onPanUpdate: _update,
+                          onPanEnd: _end,
+                          child: ClipRect(
+                            child: Stack(
+                              children: [
+                                Image.file(
+                                  File(widget.imagePath),
+                                  key: _imgKey,
+                                ),
+                                Positioned.fill(
+                                  child: CustomPaint(
+                                    painter: _Painter(_elements, _draft, _imgSize),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
                     ),
-                  ]),
-                );
-              }),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ]),
+          // Панель заметок
+            Expanded(
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Заметки',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          expands: true,
+                          maxLines: null,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Напишите здесь что-нибудь...',
+                          ),
+                          onChanged: (val) => setState(() => _notes = val),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
+
 
   Widget _toolbar() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
