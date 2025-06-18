@@ -26,6 +26,7 @@ class PenShape extends Shape {
 
   @override
   void paint(Canvas c, Paint p, Size cs) {
+    c.clipRect(Offset.zero & cs);
     p
       ..color = color
       ..strokeWidth = strokeWidth
@@ -83,6 +84,7 @@ class RectShape extends Shape {
 
   @override
   void paint(Canvas c, Paint p, Size cs) {
+    c.clipRect(Offset.zero & cs);
     p
       ..color = color.withOpacity(0.6)
       ..strokeWidth = strokeWidth
@@ -132,6 +134,7 @@ class CircleShape extends Shape {
 
   @override
   void paint(Canvas c, Paint p, Size cs) {
+    c.clipRect(Offset.zero & cs);
     p
       ..color = color.withOpacity(0.6)
       ..strokeWidth = strokeWidth
