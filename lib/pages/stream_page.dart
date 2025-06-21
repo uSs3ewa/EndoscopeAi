@@ -4,10 +4,17 @@
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:namer_app/routes.dart';
-import '../pages/models/stream_page_model.dart';
-import '../pages/views/stream_page_view.dart';
+import 'models/stream_page_model.dart';
+import 'views/stream_page_view.dart';
+import '../shared/widget/buttons.dart';
 
+class StreamPlayerPage extends StatelessWidget {
+  late final StreamPlayerPageModel _model;
+  late final StreamPlayerPageView _view;
+
+  StreamPlayerPage() {
+    _model = StreamPlayerPageModel();
+    _view = StreamPlayerPageView(_model);
 // Страница просмотра потокового видео с камеры
 class StreamPage extends StatefulWidget {
   final CameraDescription camera; // Данные о камере

@@ -2,12 +2,13 @@
 //  Страница для просмотра стриммингого видео
 //  Тут имплементировано взаимодействие с UI
 // ====================================================
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:namer_app/shared/widget/screenshot_feed.dart';
 import 'package:namer_app/shared/widget/spacing.dart';
 import '../models/stream_page_model.dart';
+import '../../shared/widget/buttons.dart';
 
+//  Логика, содержащая логику, связанную с UI
 class StreamPageView extends StatelessWidget {
   final StreamPageModel model;
   final CameraDescription camera; // Данные о камере
@@ -32,7 +33,6 @@ class StreamPageView extends StatelessWidget {
     required this.onPictureTaken,
   }) : super(key: key);
 
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

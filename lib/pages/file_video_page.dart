@@ -19,7 +19,7 @@ class _FileVidePlayerPageState extends State<FileVidePlayerPage> {
   late final _view; // фронтенд логика
 
   _FileVidePlayerPageState() {
-    _model = FileVidePlayerPageStateModel(setState);
+    _model = FileVideoPlayerPageStateModel(setState);
     _view = FileVidePlayerPageStateView(setState, _model);
   }
 

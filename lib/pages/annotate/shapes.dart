@@ -179,4 +179,3 @@ class CircleShape extends Shape {
       o.color == color &&
       o.strokeWidth == strokeWidth;
 }
-

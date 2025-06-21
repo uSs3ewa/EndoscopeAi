@@ -389,4 +389,3 @@ class _Painter extends CustomPainter {
       old.draft != draft ||
       old.canvasSize != canvasSize;
 }
-

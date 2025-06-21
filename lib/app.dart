@@ -11,7 +11,8 @@ import 'routes.dart';
 import 'pages/stream_page.dart';
 import 'pages/annotate/annotate_page.dart';
 
-class App extends StatefulWidget {
+//  Главное окно приложения, на котором производится отрисовка
+class App extends StatelessWidget {
   const App({super.key});
 
   @override
@@ -51,6 +52,7 @@ class _AppState extends State<App> {
       ),
       initialRoute: Routes.root,
       routes: {
+        // инициализация путей и окон
         Routes.recordings: (context) => RecordingsPage(),
         Routes.homePage: (context) => const HomePage(),
         Routes.fileVideoPlayer: (context) => const FileVidePlayerPage(),
@@ -63,7 +65,8 @@ class _AppState extends State<App> {
           return StreamPage(camera: cameras.first);
         },
         Routes.annotate: (context) {
-          final path = ModalRoute.of(context)!.settings.arguments as String;
+          final path =
+            ModalRoute.of(context)!.settings.arguments as String;
           return AnnotatePage(imagePath: path);
         },
       },

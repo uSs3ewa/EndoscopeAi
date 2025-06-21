@@ -4,8 +4,8 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:namer_app/shared/utility/strings.dart';
-import '../../routes.dart'; // для навигации
+import '../../shared/utility/strings.dart';
+import '../../routes.dart';              // для навигации
 
 // Состояние, определяющее степень загрузки миниатюры
 enum ScreenshotPreviewState { good, pending, error }
