@@ -12,8 +12,8 @@ import '../../shared/file_choser.dart';
 import '../../shared/widget/screenshot_preview.dart';
 
 // Модель содержащая, данные и логику
-class FileVidePlayerPageStateModel {
-  FileVidePlayerPageStateModel(this.setState);
+class FileVideoPlayerPageStateModel {
+  FileVideoPlayerPageStateModel(this.setState);
 
   final Function setState; // callback для обновить сосотояние
   late final VideoPlayerController _controller;
@@ -63,7 +63,7 @@ class FileVidePlayerPageStateModel {
   }
 
   // установить время на видео
-  void seekTo(Duration pos) {
+  void seekToWithPause(Duration pos) { // !!!!!!!!!!!!!! Проблема с неймингом
     _controller.seekTo(pos);
     if (_isPlaying) {
       togglePlayPause(); // если было включено - поставим на паузу

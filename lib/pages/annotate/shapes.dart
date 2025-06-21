@@ -1,150 +1,181 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 
-// Базовый класс фигуры
+Offset _abs(Size s, Offset rel) => Offset(rel.dx * s.width, rel.dy * s.height);
+String _hx(Color c) => '#${c.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+
 abstract class Shape {
+  Shape(this.color, this.strokeWidth);
   final Color color;
-  Shape(this.color);
+  final double strokeWidth;
 
-  void paint(Canvas canvas, Paint paint);
-  XmlNode toSvg();
+  void paint(Canvas c, Paint p, Size cs);
+  XmlNode toSvg(Size cs);
 
-  // Перемещение
-  bool hitTest(Offset p);
-  void translate(Offset delta);
-
-  // Undo/Redo
+  bool hitTest(Offset p, Size cs);
+  void translateRel(Offset dRel);
   Shape clone();
-
-  String get _hex =>
-      '#${color.value.toRadixString(16).padLeft(8, "0").substring(2)}';
+  bool compareTo(Shape other);
 }
 
-// Линия
-
+// Pen
 class PenShape extends Shape {
-  final List<Offset> points;
-  PenShape(this.points, Color c) : super(c);
+  List<Offset> pts; // relative
+  PenShape(this.pts, Color col, double strokeWidth) : super(col, strokeWidth);
 
   @override
-  void paint(Canvas c, Paint p) {
+  void paint(Canvas c, Paint p, Size cs) {
+    c.clipRect(Offset.zero & cs);
     p
       ..color = color
-      ..strokeWidth = 3
+      ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
-    final path = Path()..moveTo(points.first.dx, points.first.dy);
-    for (final pt in points.skip(1)) {
-      path.lineTo(pt.dx, pt.dy);
+    final path = Path()
+      ..moveTo(_abs(cs, pts.first).dx, _abs(cs, pts.first).dy);
+    for (final rp in pts.skip(1)) {
+      final v = _abs(cs, rp);
+      path.lineTo(v.dx, v.dy);
     }
     c.drawPath(path, p);
   }
 
   @override
-  XmlNode toSvg() => XmlElement(
-        XmlName('polyline'),
-        [
-          XmlAttribute(XmlName('points'),
-              points.map((e) => '${e.dx},${e.dy}').join(' ')),
-          XmlAttribute(XmlName('fill'), 'none'),
-          XmlAttribute(XmlName('stroke'), _hex),
-          XmlAttribute(XmlName('stroke-width'), '3'),
-        ],
-      );
+  XmlNode toSvg(Size cs) => XmlElement(XmlName('polyline'), [
+        XmlAttribute(
+            XmlName('points'),
+            pts
+                .map((rp) => _abs(cs, rp))
+                .map((v) => '${v.dx},${v.dy}')
+                .join(' ')),
+        XmlAttribute(XmlName('fill'), 'none'),
+        XmlAttribute(XmlName('stroke'), _hx(color)),
+        XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
+      ]);
 
   @override
-  bool hitTest(Offset p) =>
-      points.any((pt) => (pt - p).distance <= 8); // «захват» 8 px
+  bool hitTest(Offset p, Size cs) =>
+      pts.any((rp) => (_abs(cs, rp) - p).distance <= 8);
 
   @override
-  void translate(Offset d) {
-    for (var i = 0; i < points.length; i++) {
-      points[i] += d;
+  void translateRel(Offset d) {
+    for (var i = 0; i < pts.length; i++) {
+      pts[i] += d;
     }
   }
 
   @override
-  Shape clone() => PenShape(List.of(points), color);
-}
-
-// Прямоугольник
-
-class RectShape extends Shape {
-  Offset p1, p2;
-  RectShape(this.p1, this.p2, Color c) : super(c);
-
-  Rect get _rect => Rect.fromPoints(p1, p2);
+  Shape clone() => PenShape(List.of(pts), color, strokeWidth);
 
   @override
-  void paint(Canvas c, Paint p) {
+  bool compareTo(Shape other) =>
+      other is PenShape &&
+      listEquals(other.pts, pts) &&
+      other.color == color &&
+      other.strokeWidth == strokeWidth;
+}
+
+// Rect
+class RectShape extends Shape {
+  Offset p1, p2; // relative
+  RectShape(this.p1, this.p2, Color col, double strokeWidth) : super(col, strokeWidth);
+
+  Rect _rect(Size cs) => Rect.fromPoints(_abs(cs, p1), _abs(cs, p2));
+
+  @override
+  void paint(Canvas c, Paint p, Size cs) {
+    c.clipRect(Offset.zero & cs);
     p
       ..color = color.withOpacity(0.6)
-      ..strokeWidth = 3
+      ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
-    c.drawRect(_rect, p);
+    c.drawRect(_rect(cs), p);
   }
 
   @override
-  XmlNode toSvg() => XmlElement(XmlName('rect'), [
-        XmlAttribute(XmlName('x'), _rect.left.toString()),
-        XmlAttribute(XmlName('y'), _rect.top.toString()),
-        XmlAttribute(XmlName('width'), _rect.width.toString()),
-        XmlAttribute(XmlName('height'), _rect.height.toString()),
-        XmlAttribute(XmlName('fill'), 'none'),
-        XmlAttribute(XmlName('stroke'), _hex),
-        XmlAttribute(XmlName('stroke-width'), '3'),
-      ]);
+  XmlNode toSvg(Size cs) {
+    final r = _rect(cs);
+    return XmlElement(XmlName('rect'), [
+      XmlAttribute(XmlName('x'), r.left.toStringAsFixed(1)),
+      XmlAttribute(XmlName('y'), r.top.toStringAsFixed(1)),
+      XmlAttribute(XmlName('width'), r.width.toStringAsFixed(1)),
+      XmlAttribute(XmlName('height'), r.height.toStringAsFixed(1)),
+      XmlAttribute(XmlName('fill'), 'none'),
+      XmlAttribute(XmlName('stroke'), _hx(color)),
+      XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
+    ]);
+  }
 
   @override
-  bool hitTest(Offset p) => _rect.inflate(6).contains(p);
+  bool hitTest(Offset p, Size cs) => _rect(cs).inflate(6).contains(p);
 
   @override
-  void translate(Offset d) {
+  void translateRel(Offset d) {
     p1 += d;
     p2 += d;
   }
 
   @override
-  Shape clone() => RectShape(p1, p2, color);
-}
-
-
-// Круг/овал: центр = точка клика
-
-class CircleShape extends Shape {
-  Offset center, edge;                       // edge определяет радиус
-  CircleShape(this.center, this.edge, Color c) : super(c);
-
-  double get _radius => (edge - center).distance;
+  Shape clone() => RectShape(p1, p2, color, strokeWidth);
 
   @override
-  void paint(Canvas c, Paint p) {
+  bool compareTo(Shape o) =>
+      o is RectShape &&
+      o.p1 == p1 &&
+      o.p2 == p2 &&
+      o.color == color &&
+      o.strokeWidth == strokeWidth;
+}
+
+// Circle 
+class CircleShape extends Shape {
+  Offset a, b; // opposite corners (rel)
+  CircleShape(this.a, this.b, Color col, double strokeWidth) : super(col, strokeWidth);
+
+  @override
+  void paint(Canvas c, Paint p, Size cs) {
+    c.clipRect(Offset.zero & cs);
     p
       ..color = color.withOpacity(0.6)
-      ..strokeWidth = 3
+      ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
-    c.drawCircle(center, _radius, p);
+    final rect = Rect.fromPoints(_abs(cs, a), _abs(cs, b));
+    c.drawCircle(rect.center, rect.shortestSide / 2, p);
   }
 
   @override
-  XmlNode toSvg() => XmlElement(XmlName('circle'), [
-        XmlAttribute(XmlName('cx'), center.dx.toString()),
-        XmlAttribute(XmlName('cy'), center.dy.toString()),
-        XmlAttribute(XmlName('r'),  _radius.toString()),
-        XmlAttribute(XmlName('fill'), 'none'),
-        XmlAttribute(XmlName('stroke'), _hex),
-        XmlAttribute(XmlName('stroke-width'), '3'),
-      ]);
-
-  @override
-  bool hitTest(Offset p) => (p - center).distance <= _radius + 6;
-
-  @override
-  void translate(Offset d) {
-    center += d;
-    edge   += d;
+  XmlNode toSvg(Size cs) {
+    final rect = Rect.fromPoints(_abs(cs, a), _abs(cs, b));
+    return XmlElement(XmlName('circle'), [
+      XmlAttribute(XmlName('cx'), rect.center.dx.toStringAsFixed(1)),
+      XmlAttribute(XmlName('cy'), rect.center.dy.toStringAsFixed(1)),
+      XmlAttribute(XmlName('r'), (rect.shortestSide / 2).toStringAsFixed(1)),
+      XmlAttribute(XmlName('fill'), 'none'),
+      XmlAttribute(XmlName('stroke'), _hx(color)),
+      XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
+    ]);
   }
 
   @override
-  Shape clone() => CircleShape(center, edge, color);
+  bool hitTest(Offset p, Size cs) {
+    final rect = Rect.fromPoints(_abs(cs, a), _abs(cs, b));
+    return (p - rect.center).distance <= rect.shortestSide / 2 + 6;
+  }
+
+  @override
+  void translateRel(Offset d) {
+    a += d;
+    b += d;
+  }
+
+  @override
+  Shape clone() => CircleShape(a, b, color, strokeWidth);
+
+  @override
+  bool compareTo(Shape o) =>
+      o is CircleShape &&
+      o.a == a &&
+      o.b == b &&
+      o.color == color &&
+      o.strokeWidth == strokeWidth;
 }
-

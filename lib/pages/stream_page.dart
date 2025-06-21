@@ -1,51 +1,22 @@
 // ====================================================
 //  Страница для просмотра стриммингого видео
 // ====================================================
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:namer_app/routes.dart';
-import '../pages/models/stream_page_model.dart';
-import '../pages/views/stream_page_view.dart';
+import 'models/stream_page_model.dart';
+import 'views/stream_page_view.dart';
+import '../shared/widget/buttons.dart';
 
-class StreamPage extends StatefulWidget {
-  final CameraDescription camera;
+class StreamPlayerPage extends StatelessWidget {
+  late final StreamPlayerPageModel _model;
+  late final StreamPlayerPageView _view;
 
-  const StreamPage({Key? key, required this.camera}) : super(key: key);
-
-  @override
-  State<StreamPage> createState() => _StreamPageState();
-}
-
-class _StreamPageState extends State<StreamPage> {
-  late final StreamPageModel _model;
-
-  @override
-  void initState() {
-    super.initState();
-    _model = StreamPageModel();
-  }
-
-  @override
-  void dispose() {
-    _model.dispose();
-    super.dispose();
-  }
-
-  void _handlePictureTaken(XFile image) {
-    Navigator.pushNamed(
-      context,
-      Routes.annotate,
-      arguments: image.path,
-    );
+  StreamPlayerPage() {
+    _model = StreamPlayerPageModel();
+    _view = StreamPlayerPageView(_model);
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamPageView(
-      model: _model,
-      camera: widget.camera,
-      onBackPressed: () => Navigator.pop(context),
-      onPictureTaken: _handlePictureTaken,
-    );
+    return _view.build(context);
   }
 }
