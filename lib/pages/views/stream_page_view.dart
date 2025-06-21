@@ -58,7 +58,7 @@ class StreamPageView extends StatelessWidget {
                   );
                 }
               } else {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: Text('Камера не найдена'));
               }
             },
           ),
