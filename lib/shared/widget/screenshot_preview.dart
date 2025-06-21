@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../shared/utility/strings.dart';
 import '../../routes.dart';              // для навигации
 
 // Состояние, определяющее степень загрузки миниатюры
@@ -87,7 +88,7 @@ class ScreenshotPreviewView extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(6),
           child: Text(
-            _hhmmss(model.position),
+            formatDuration(model.position),
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
@@ -118,14 +119,6 @@ class ScreenshotPreviewView extends StatelessWidget {
       case ScreenshotPreviewState.error: // ошибка загрузки
         return const Icon(Icons.error, color: Colors.red);
     }
-  }
-
-  // Перевод duration в строку
-  String _hhmmss(Duration d) {
-    String two(int n) => n.toString().padLeft(2, '0');
-    return d.inHours > 0
-        ? '${two(d.inHours)}:${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}'
-        : '${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}';
   }
 }
 
