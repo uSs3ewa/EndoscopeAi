@@ -21,6 +21,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   List<CameraDescription> cameras = [];
   bool _isCameraInitialized = false;
+   bool _hasCameraError = false;
 
   @override
   void initState() {
@@ -34,9 +35,13 @@ class _AppState extends State<App> {
       cameras = await availableCameras();
       setState(() {
         _isCameraInitialized = true;
+        _hasCameraError = cameras.isEmpty;
       });
     } catch (e) {
       print('Error initializing cameras: $e');
+      setState(() {
+        _hasCameraError = true;
+      });
     }
   }
 
@@ -55,9 +60,28 @@ class _AppState extends State<App> {
         Routes.homePage: (context) => const HomePage(),
         Routes.fileVideoPlayer: (context) => const FileVidePlayerPage(),
         Routes.streamVideoPlayer: (context) {
-          if (!_isCameraInitialized || cameras.isEmpty) {
+          if (!_isCameraInitialized) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (_hasCameraError || cameras.isEmpty) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Ошибка камеры')),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.videocam_off, size: 50),
+                    const SizedBox(height: 20),
+                    const Text('Камера недоступна'),
+                    TextButton(
+                      onPressed: _initializeCameras,
+                      child: const Text('Повторить попытку'),
+                    ),
+                  ],
+                ),
+              ),
             );
           }
           return StreamPage(camera: cameras.first);
