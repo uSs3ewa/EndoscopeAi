@@ -48,6 +48,11 @@ class StreamPageModel with ChangeNotifier{
     }
   }
 
+  Future<void> initialize() async {
+  await _initializeCamera();
+  _startCameraCheckTimer();
+}
+
   // Метод для проверки состояния камеры
   Future<void> _checkCameraAvailability() async {
     try {
