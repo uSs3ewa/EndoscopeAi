@@ -4,15 +4,16 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../routes.dart';              // для навигации
+import 'package:namer_app/shared/utility/strings.dart';
+import '../../routes.dart'; // для навигации
 
 // Состояние, определяющее степень загрузки миниатюры
 enum ScreenshotPreviewState { good, pending, error }
 
 // Модель с данными о превьюшке кадра
 class ScreenshotPreviewModel {
-  final String path;            // путь к PNG
-  final Duration position;      // время, где сделан кадр
+  final String path; // путь к PNG
+  final Duration position; // время, где сделан кадр
   ScreenshotPreviewState state; // состояние загрузки
 
   ScreenshotPreviewModel(
@@ -47,8 +48,9 @@ class ScreenshotPreviewView extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias, // обрезаем по радиусу
         child: InkWell(
-          onTap: () => onTap(model.position),          // перемотка видео
-          onDoubleTap: () {                            // Переход по двойному нажатию
+          onTap: () => onTap(model.position), // перемотка видео
+          onDoubleTap: () {
+            // Переход по двойному нажатию
             Navigator.pushNamed(
               context,
               Routes.annotate,
@@ -87,7 +89,7 @@ class ScreenshotPreviewView extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(6),
           child: Text(
-            _hhmmss(model.position),
+            formatDuration(model.position),
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
@@ -119,13 +121,4 @@ class ScreenshotPreviewView extends StatelessWidget {
         return const Icon(Icons.error, color: Colors.red);
     }
   }
-
-  // Перевод duration в строку
-  String _hhmmss(Duration d) {
-    String two(int n) => n.toString().padLeft(2, '0');
-    return d.inHours > 0
-        ? '${two(d.inHours)}:${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}'
-        : '${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}';
-  }
 }
-

@@ -42,6 +42,7 @@ class _FileVidePlayerPageState extends State<FileVidePlayerPage> {
   @override
   void dispose() {
     _model.dispose();
+    super.dispose();
   }
 
   // Обновить состояние videoplayer
