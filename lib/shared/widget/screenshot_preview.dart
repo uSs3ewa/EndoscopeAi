@@ -12,8 +12,8 @@ enum ScreenshotPreviewState { good, pending, error }
 
 // Модель с данными о превьюшке кадра
 class ScreenshotPreviewModel {
-  final String path;            // путь к PNG
-  final Duration position;      // время, где сделан кадр
+  final String path; // путь к PNG
+  final Duration position; // время, где сделан кадр
   ScreenshotPreviewState state; // состояние загрузки
 
   ScreenshotPreviewModel(
@@ -48,8 +48,9 @@ class ScreenshotPreviewView extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias, // обрезаем по радиусу
         child: InkWell(
-          onTap: () => onTap(model.position),          // перемотка видео
-          onDoubleTap: () {                            // Переход по двойному нажатию
+          onTap: () => onTap(model.position), // перемотка видео
+          onDoubleTap: () {
+            // Переход по двойному нажатию
             Navigator.pushNamed(
               context,
               Routes.annotate,
@@ -121,4 +122,3 @@ class ScreenshotPreviewView extends StatelessWidget {
     }
   }
 }
-

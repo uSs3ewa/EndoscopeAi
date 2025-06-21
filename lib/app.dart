@@ -2,6 +2,7 @@
 //  Главное окно приложения, на котором производится отрисовка
 // ====================================================
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 
 import 'pages/file_video_page.dart';
 import 'pages/home_page.dart';
@@ -13,6 +14,32 @@ import 'pages/annotate/annotate_page.dart';
 //  Главное окно приложения, на котором производится отрисовка
 class App extends StatelessWidget {
   const App({super.key});
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  List<CameraDescription> cameras = [];
+  bool _isCameraInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCameras();
+  }
+
+  // Получение списка доступных камер
+  Future<void> _initializeCameras() async {
+    try {
+      cameras = await availableCameras();
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    } catch (e) {
+      print('Error initializing cameras: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +56,14 @@ class App extends StatelessWidget {
         Routes.recordings: (context) => RecordingsPage(),
         Routes.homePage: (context) => const HomePage(),
         Routes.fileVideoPlayer: (context) => const FileVidePlayerPage(),
-        Routes.streamVideoPlayer: (context) => StreamPlayerPage(),
-
-        // — новое окно аннотаций —
+        Routes.streamVideoPlayer: (context) {
+          if (!_isCameraInitialized || cameras.isEmpty) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return StreamPage(camera: cameras.first);
+        },
         Routes.annotate: (context) {
           final path =
             ModalRoute.of(context)!.settings.arguments as String;

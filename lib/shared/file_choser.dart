@@ -2,6 +2,7 @@
 //  Инструментарий для импорта файла с помощтю системног опроводника
 // ====================================================
 import 'package:file_picker/file_picker.dart' as fp;
+import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 
 // Класс для импорта/выбора файла
@@ -33,6 +34,8 @@ class FilePicker {
       print('Выбранный файл: $filePath');
     } else {
       print('Отменено пользователем');
+
+      throw ErrorDescription("Операция отменена пользователем");
     }
   }
 }
