@@ -53,7 +53,7 @@ class MarkersModel {
 
               if (closestShot != null) {
                 modelVideoPlayer.currentPosition = closestShot.position;
-                modelVideoPlayer.seekToWithPause(modelVideoPlayer.currentPosition);
+                modelVideoPlayer.seekTo(modelVideoPlayer.currentPosition);
               } else {
                 // Если клик не на насечке, передаем управление слайдеру
                 modelVideoPlayer.currentPosition = Duration(milliseconds: tappedMs.toInt());

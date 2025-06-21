@@ -21,7 +21,7 @@ class GalleryOfScreenshot extends StatelessWidget{
                           itemCount: modelVideoPlayer.shots.length,
                           itemBuilder: (ctx, i) => ScreenshotPreviewView(
                             model: modelVideoPlayer.shots[i],
-                            onTap: modelVideoPlayer.seekToWithPause,
+                            onTap: modelVideoPlayer.seekTo,
                           ),
                         ),
                 ),

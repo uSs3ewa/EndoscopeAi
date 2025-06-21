@@ -11,7 +11,7 @@ import '../models/file_video_page_model.dart';
 import '../../shared/widget/spacing.dart';
 import '../../shared/widget/screenshot_preview.dart';
 import '../../shared/widget/custom_slider.dart';
-import '../../shared/widget/gallery_of_screenshot.dart';
+import '../../shared/widget/screenshot_feed.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class FileVidePlayerPageStateView {
@@ -42,8 +42,9 @@ class FileVidePlayerPageStateView {
             createIndention(),
 
             /// ЛЕНТА СКРИНШОТОВ
-            Expanded(
-              child: GalleryOfScreenshot(modelVideoPlayer: _model),
+            ScreenshotFeed(
+              onFetchScreenshots: () => _model.shots,
+              onTap: _model.seekTo,
             ),
           ],
         ),

@@ -63,7 +63,7 @@ class FileVideoPlayerPageStateModel {
   }
 
   // установить время на видео
-  void seekToWithPause(Duration pos) { // !!!!!!!!!!!!!! Проблема с неймингом
+  void seekTo(Duration pos) { // !!!!!!!!!!!!!! Проблема с неймингом
     _controller.seekTo(pos);
     if (_isPlaying) {
       togglePlayPause(); // если было включено - поставим на паузу
