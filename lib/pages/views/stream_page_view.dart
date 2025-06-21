@@ -10,10 +10,20 @@ import '../models/stream_page_model.dart';
 
 class StreamPageView extends StatelessWidget {
   final StreamPageModel model;
-  final CameraDescription camera;
+  final CameraDescription camera; // Данные о камере
+
+  // Ф-ия, вызываемая при нажатии на кнопку назад
+
   final VoidCallback onBackPressed;
+  // Ф-ия, вызываемая при сохранении фотографии
   final Function(XFile) onPictureTaken;
 
+  /*
+    * `model` - модель с текущей страницы
+    * `camera` - данные о камере, с которой будет браться видеопоток
+    * `onBackPressed` - ф-ия, вызываемая при нажатии на кнопку назад
+    * `onPictureTaken` - ф-ия вызываемая после сохрания изображения
+  */
   const StreamPageView({
     Key? key,
     required this.model,
@@ -34,6 +44,7 @@ class StreamPageView extends StatelessWidget {
       ),
       body: Row(
         children: [
+          // Камера
           FutureBuilder(
             future: model.cameraInitialized,
             builder: (context, snapshot) {
@@ -50,7 +61,11 @@ class StreamPageView extends StatelessWidget {
               }
             },
           ),
+
+          // Отступ
           createIndention(),
+
+          // Лента скриншотов
           ScreenshotFeed(onFetchScreenshots: () => model.shots),
         ],
       ),

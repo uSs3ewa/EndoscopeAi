@@ -2,29 +2,33 @@
 //  Страница для просмотра стриммингого видео
 //  Тут имплементировано взаимодействие с логикой, не касающейся UI
 // ====================================================
+
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import '../../shared/widget/screenshot_preview.dart';
 
 class StreamPageModel {
-  final CameraDescription cameraDescription;
+  final CameraDescription cameraDescription; // данные о камере
   late CameraController _controller;
-  CameraController get controller => _controller;
-  bool _isInitialized = false;
-  bool get isInitialized => _isInitialized;
+  bool _isInitialized = false; // инициализированная ли камера
   final List<ScreenshotPreviewModel> _shots = []; // список миниатюр
-  late final Future<void> cameraInitialized;
+  late final Future<void> cameraInitialized; // состояние инициализации камеры
 
+  // Геттеры/сеттеры
+  bool get isInitialized => _isInitialized;
+  CameraController get controller => _controller;
   List<ScreenshotPreviewModel> get shots => _shots;
 
+  // `cameraDescription` -  данные о камере
   StreamPageModel({required this.cameraDescription}) {
-    cameraInitialized = _initializeCamera(cameraDescription);
+    cameraInitialized = _initializeCamera();
   }
 
-  Future<void> _initializeCamera(CameraDescription camera) async {
+  // Инициализация контроллера камеры
+  Future<void> _initializeCamera() async {
     try {
       _controller = CameraController(
-        camera,
+        cameraDescription,
         ResolutionPreset.medium,
         enableAudio: false,
       );
@@ -38,6 +42,7 @@ class StreamPageModel {
     }
   }
 
+  // Сохранение кадра в файл. Возвращает путь к этому кадру
   Future<XFile?> takePicture() async {
     if (!_isInitialized) return null;
     try {
@@ -50,7 +55,9 @@ class StreamPageModel {
     }
   }
 
+  // Функция, которая вызвается при успешном сохранении кадра
   void saveScreenshot(XFile file) {
+    // Добавляем кадр в ленту
     _shots.add(
       ScreenshotPreviewModel(
         file.path,
@@ -59,6 +66,7 @@ class StreamPageModel {
     );
   }
 
+  // Освобождение ресурсов
   void dispose() {
     print('StreamPageModel disposed');
 
