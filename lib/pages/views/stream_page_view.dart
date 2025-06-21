@@ -38,54 +38,63 @@ class StreamPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => StreamPageModel(cameraDescription: camera),
-      child: Consumer<StreamPageModel>(
-        builder: (context, model, child) {
-          return Scaffold(
-            // Условное отображение AppBar:
-            // - Показывается если камера доступна (cameraAvailable == true)
-            // - ИЛИ если камера ещё не инициализирована (!isInitialized)
-            // - Скрывается (null) если камера стала недоступна после инициализации
-            appBar: model.cameraAvailable || !model.isInitialized 
-                ? AppBar(
-                    title: const Text('Поток с камеры'),
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: onBackPressed,
-                    ),
-                  )
-                : null,
-
-            body: Row(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Поток с камеры'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: onBackPressed,
+          ),
+        ),
+        body: Consumer<StreamPageModel>(
+          builder: (context, model, child) {
+            return Row(
               children: [
-                // Камера
-                FutureBuilder(
-                  future: model.cameraInitialized,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      if (model.isInitialized) {
-                        return CameraPreview(model.controller);
-                      } else {
+                Expanded(
+                  child: FutureBuilder(
+                    future: model.cameraInitialized,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        if (model.isInitialized) {
+                          return CameraPreview(model.controller);
+                        }
                         return const Center(
-                          child: Text('Ошибка инициализации камеры'),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.videocam_off, size: 50),
+                              SizedBox(height: 16),
+                              Text('Камера недоступна', style: TextStyle(fontSize: 18)),
+                              Text('Попробуйте проверить подключение', style: TextStyle(color: Colors.grey)),
+                            ],
+                          ),
                         );
                       }
-                    } else {
-                      // Обновлённое сообщение о статусе загрузки
-                      return const Center(child: Text('Инициализация камеры...'));
-                    }
-                  },
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text('Инициализация камеры...'),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
-
-                // Отступ
                 createIndention(),
-
-                // Лента скриншотов
                 ScreenshotFeed(onFetchScreenshots: () => model.shots),
               ],
-            ),
-
-            // Кнопка съёмки показывается только если камера инициализирована
-            floatingActionButton: model.isInitialized
+            );
+          },
+        ),
+        // Решение для FloatingActionButton:
+        // Используем Builder и Consumer для условного отображения
+        floatingActionButton: Builder(
+          builder: (context) {
+            final model = Provider.of<StreamPageModel>(context, listen: true);
+            return model.isInitialized
                 ? FloatingActionButton(
                     onPressed: () async {
                       final image = await model.takePicture();
@@ -95,9 +104,9 @@ class StreamPageView extends StatelessWidget {
                     },
                     child: const Icon(Icons.camera_alt),
                   )
-                : null,
-          );
-        },
+                : const SizedBox.shrink(); // Возвращаем пустой виджет вместо null
+          },
+        ),
       ),
     );
   }
