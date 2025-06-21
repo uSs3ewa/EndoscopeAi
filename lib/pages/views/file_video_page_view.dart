@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../models/file_video_page_model.dart';
 import '../../shared/widget/spacing.dart';
 import '../../shared/widget/screenshot_preview.dart';
+import '../../shared/widget/screenshot_feed.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class FileVidePlayerPageStateView {
@@ -39,22 +40,9 @@ class FileVidePlayerPageStateView {
             createIndention(),
 
             /// ЛЕНТА СКРИНШОТОВ
-            Expanded(
-              child: Card(
-                color: const Color.fromARGB(255, 228, 226, 226),
-                child: Padding(
-                  padding: EdgeInsets.all(7),
-                  child: _model.shots.isEmpty
-                      ? const Center(child: Text('Нет скриншотов'))
-                      : ListView.builder(
-                          itemCount: _model.shots.length,
-                          itemBuilder: (ctx, i) => ScreenshotPreviewView(
-                            model: _model.shots[i],
-                            onTap: _model.seekTo,
-                          ),
-                        ),
-                ),
-              ),
+            ScreenshotFeed(
+              onFetchScreenshots: () => _model.shots,
+              onTap: _model.seekTo,
             ),
           ],
         ),
