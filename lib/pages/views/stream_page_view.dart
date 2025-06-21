@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:namer_app/shared/widget/screenshot_feed.dart';
 import 'package:namer_app/shared/widget/spacing.dart';
+import 'package:provider/provider.dart';
 import '../models/stream_page_model.dart';
 import '../../shared/widget/buttons.dart';
 
@@ -35,49 +36,68 @@ class StreamPageView extends StatelessWidget {
   }) : super(key: key);
 
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Поток с камеры'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: onBackPressed,
-        ),
-      ),
-      body: Row(
-        children: [
-          // Камера
-          FutureBuilder(
-            future: model.cameraInitialized,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                if (model.isInitialized) {
-                  return CameraPreview(model.controller);
-                } else {
-                  return const Center(
-                    child: Text('Ошибка инициализации камеры'),
-                  );
-                }
-              } else {
-                return const Center(child: Text('Камера не найдена'));
-              }
-            },
-          ),
+    return ChangeNotifierProvider(
+      create: (context) => StreamPageModel(cameraDescription: camera),
+      child: Consumer<StreamPageModel>(
+        builder: (context, model, child) {
+          return Scaffold(
+            // Условное отображение AppBar:
+            // - Показывается если камера доступна (cameraAvailable == true)
+            // - ИЛИ если камера ещё не инициализирована (!isInitialized)
+            // - Скрывается (null) если камера стала недоступна после инициализации
+            appBar: model.cameraAvailable || !model.isInitialized 
+                ? AppBar(
+                    title: const Text('Поток с камеры'),
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: onBackPressed,
+                    ),
+                  )
+                : null,
 
-          // Отступ
-          createIndention(),
+            body: Row(
+              children: [
+                // Камера
+                FutureBuilder(
+                  future: model.cameraInitialized,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (model.isInitialized) {
+                        return CameraPreview(model.controller);
+                      } else {
+                        return const Center(
+                          child: Text('Ошибка инициализации камеры'),
+                        );
+                      }
+                    } else {
+                      // Обновлённое сообщение о статусе загрузки
+                      return const Center(child: Text('Инициализация камеры...'));
+                    }
+                  },
+                ),
 
-          // Лента скриншотов
-          ScreenshotFeed(onFetchScreenshots: () => model.shots),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final image = await model.takePicture();
-          if (image != null) {
-            onPictureTaken(image);
-          }
+                // Отступ
+                createIndention(),
+
+                // Лента скриншотов
+                ScreenshotFeed(onFetchScreenshots: () => model.shots),
+              ],
+            ),
+
+            // Кнопка съёмки показывается только если камера инициализирована
+            floatingActionButton: model.isInitialized
+                ? FloatingActionButton(
+                    onPressed: () async {
+                      final image = await model.takePicture();
+                      if (image != null) {
+                        onPictureTaken(image);
+                      }
+                    },
+                    child: const Icon(Icons.camera_alt),
+                  )
+                : null,
+          );
         },
-        child: const Icon(Icons.camera_alt),
       ),
     );
   }
