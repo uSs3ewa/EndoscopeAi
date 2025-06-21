@@ -18,11 +18,18 @@ class StreamPage extends StatefulWidget {
 
 class _StreamPageState extends State<StreamPage> {
   late final StreamPageModel _model;
+  late final StreamPageView _view;
 
   @override
   void initState() {
     super.initState();
-    _model = StreamPageModel();
+    _model = StreamPageModel(cameraDescription: widget.camera);
+    _view = StreamPageView(
+      model: _model,
+      camera: widget.camera,
+      onBackPressed: () => Navigator.pop(context),
+      onPictureTaken: _handlePictureTaken,
+    );
   }
 
   @override
@@ -32,20 +39,16 @@ class _StreamPageState extends State<StreamPage> {
   }
 
   void _handlePictureTaken(XFile image) {
-    Navigator.pushNamed(
-      context,
-      Routes.annotate,
-      arguments: image.path,
-    );
+    setState(() => _model.saveScreenshot(image));
+    // Navigator.pushNamed(
+    //   context,
+    //   Routes.annotate,
+    //   arguments: image.path,
+    // );
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamPageView(
-      model: _model,
-      camera: widget.camera,
-      onBackPressed: () => Navigator.pop(context),
-      onPictureTaken: _handlePictureTaken,
-    );
+    return _view.build(context);
   }
 }

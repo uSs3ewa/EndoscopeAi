@@ -4,6 +4,8 @@
 // ====================================================
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:namer_app/shared/widget/screenshot_feed.dart';
+import 'package:namer_app/shared/widget/spacing.dart';
 import '../models/stream_page_model.dart';
 
 class StreamPageView extends StatelessWidget {
@@ -30,19 +32,27 @@ class StreamPageView extends StatelessWidget {
           onPressed: onBackPressed,
         ),
       ),
-      body: FutureBuilder(
-        future: model.initializeCamera(camera),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (model.isInitialized) {
-              return CameraPreview(model.controller);
-            } else {
-              return const Center(child: Text('Ошибка инициализации камеры'));
-            }
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
+      body: Row(
+        children: [
+          FutureBuilder(
+            future: model.cameraInitialized,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (model.isInitialized) {
+                  return CameraPreview(model.controller);
+                } else {
+                  return const Center(
+                    child: Text('Ошибка инициализации камеры'),
+                  );
+                }
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
+          createIndention(),
+          ScreenshotFeed(onFetchScreenshots: () => model.shots),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
