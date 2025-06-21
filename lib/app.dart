@@ -2,7 +2,6 @@
 //  Главное окно приложения, на котором производится отрисовка
 // ====================================================
 import 'package:flutter/material.dart';
-import '../pages/views/stream_page_view.dart';
 import 'package:camera/camera.dart';
 
 import 'pages/file_video_page.dart';
@@ -29,6 +28,7 @@ class _AppState extends State<App> {
     _initializeCameras();
   }
 
+  // Получение списка доступных камер
   Future<void> _initializeCameras() async {
     try {
       cameras = await availableCameras();
@@ -57,9 +57,7 @@ class _AppState extends State<App> {
         Routes.streamVideoPlayer: (context) {
           if (!_isCameraInitialized || cameras.isEmpty) {
             return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
+              body: Center(child: CircularProgressIndicator()),
             );
           }
           return StreamPage(camera: cameras.first);
