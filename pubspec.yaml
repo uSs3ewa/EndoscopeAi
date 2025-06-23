@@ -1,5 +1,5 @@
-name: namer_app
-description: "A new Flutter project."
+name: endoscopy_ai
+description: "Desktop client for endoscopic examinations."
 publish_to: 'none'
 version: 0.1.0
 
