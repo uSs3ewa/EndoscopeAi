@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart'; 
+import 'package:flutter/rendering.dart';
 import 'package:path/path.dart' as p;
 
 import 'shapes.dart';
@@ -21,8 +21,8 @@ class AnnotatePage extends StatefulWidget {
 
 class _AnnotatePageState extends State<AnnotatePage> {
   final _globalKey = GlobalKey();
-  final _imgKey    = GlobalKey();
-  Size   _imgSize  = Size.zero;
+  final _imgKey = GlobalKey();
+  Size _imgSize = Size.zero;
 
   static const _palette = [
     Color(0xFF0072B2),
@@ -30,7 +30,7 @@ class _AnnotatePageState extends State<AnnotatePage> {
     Color(0xFF009E73),
   ];
   Color _color = _palette.first;
-  Tool  _tool  = Tool.pen;
+  Tool _tool = Tool.pen;
 
   double _strokeWidth = 3.0;
   final List<double> _availableWidths = [1.0, 3.0, 5.0, 8.0, 12.0];
@@ -38,11 +38,11 @@ class _AnnotatePageState extends State<AnnotatePage> {
   final _elements = <Shape>[];
   Shape? _draft;
   String _notes = '';
-  Shape?  _selected;
+  Shape? _selected;
   Offset? _lastRel;
 
-  final _history = <List<Shape>>[];
-  int   _histIx  = -1;
+  final _history = <List<Shape>>[[]];
+  int _histIx = 0;
   void _commit() {
     _history.removeRange(_histIx + 1, _history.length);
     _history.add(_elements.map((e) => e.clone()).toList());
@@ -55,19 +55,23 @@ class _AnnotatePageState extends State<AnnotatePage> {
     return Offset(dx, dy);
   }
 
-  Offset _clampLocal(Offset p) => Offset(
-        p.dx.clamp(0.0, _imgSize.width),
-        p.dy.clamp(0.0, _imgSize.height),
-      );
+  Offset _clampLocal(Offset p) =>
+      Offset(p.dx.clamp(0.0, _imgSize.width), p.dy.clamp(0.0, _imgSize.height));
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Annotation'),
         actions: [
-          IconButton(icon: const Icon(Icons.undo), onPressed: _undo),
-          IconButton(icon: const Icon(Icons.redo), onPressed: _redo),
+          IconButton(
+            icon: const Icon(Icons.undo),
+            onPressed: _histIx == 0 ? null : _undo,
+          ),
+          IconButton(
+            icon: const Icon(Icons.redo),
+            onPressed: _histIx == _history.length - 1 ? null : _redo,
+          ),
           IconButton(icon: const Icon(Icons.save), onPressed: _saveSvg),
         ],
       ),
@@ -83,35 +87,41 @@ class _AnnotatePageState extends State<AnnotatePage> {
                   child: Center(
                     child: RepaintBoundary(
                       key: _globalKey,
-                      child: LayoutBuilder(builder: (_, __) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          final ctx = _imgKey.currentContext;
-                          if (ctx != null) {
-                            final sz = ctx.size ?? Size.zero;
-                            if (sz != _imgSize) setState(() => _imgSize = sz);
-                          }
-                        });
-                        return GestureDetector(
-                          onPanStart: _start,
-                          onPanUpdate: _update,
-                          onPanEnd: _end,
-                          child: ClipRect(
-                            child: Stack(
-                              children: [
-                                Image.file(
-                                  File(widget.imagePath),
-                                  key: _imgKey,
-                                ),
-                                Positioned.fill(
-                                  child: CustomPaint(
-                                    painter: _Painter(_elements, _draft, _imgSize),
+                      child: LayoutBuilder(
+                        builder: (_, __) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            final ctx = _imgKey.currentContext;
+                            if (ctx != null) {
+                              final sz = ctx.size ?? Size.zero;
+                              if (sz != _imgSize) setState(() => _imgSize = sz);
+                            }
+                          });
+                          return GestureDetector(
+                            onPanStart: _start,
+                            onPanUpdate: _update,
+                            onPanEnd: _end,
+                            child: ClipRect(
+                              child: Stack(
+                                children: [
+                                  Image.file(
+                                    File(widget.imagePath),
+                                    key: _imgKey,
                                   ),
-                                ),
-                              ],
+                                  Positioned.fill(
+                                    child: CustomPaint(
+                                      painter: _Painter(
+                                        _elements,
+                                        _draft,
+                                        _imgSize,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -119,7 +129,7 @@ class _AnnotatePageState extends State<AnnotatePage> {
             ),
           ),
           // Панель заметок
-            Expanded(
+          Expanded(
             flex: 1,
             child: Padding(
               padding: const EdgeInsets.all(12.0),
@@ -160,145 +170,146 @@ class _AnnotatePageState extends State<AnnotatePage> {
     );
   }
 
-
   Widget _toolbar() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(children: [
-          // Выбор цвета с выделением
-          for (final c in _palette) _colorBtn(c),
-          const SizedBox(width: 20),
-          
-          // Выбор толщины с выделением
-          Text('Толщина: ', style: TextStyle(fontSize: 14)),
-          for (final w in _availableWidths) _widthBtn(w),
-          const SizedBox(width: 20),
-          
-          // Выбор инструментов с выделением
-          _toolBtn(Icons.edit, Tool.pen),
-          _toolBtn(Icons.crop_square, Tool.rect),
-          _toolBtn(Icons.circle_outlined, Tool.circle),
-          _toolBtn(Icons.open_with, Tool.move),
-        ]),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    child: Row(
+      children: [
+        // Выбор цвета с выделением
+        for (final c in _palette) _colorBtn(c),
+        const SizedBox(width: 20),
+
+        // Выбор толщины с выделением
+        Text('Толщина: ', style: TextStyle(fontSize: 14)),
+        for (final w in _availableWidths) _widthBtn(w),
+        const SizedBox(width: 20),
+
+        // Выбор инструментов с выделением
+        _toolBtn(Icons.edit, Tool.pen),
+        _toolBtn(Icons.crop_square, Tool.rect),
+        _toolBtn(Icons.circle_outlined, Tool.circle),
+        _toolBtn(Icons.open_with, Tool.move),
+      ],
+    ),
+  );
 
   Widget _colorBtn(Color c) => GestureDetector(
-        onTap: () => setState(() => _color = c),
-        child: Container(
-          margin: const EdgeInsets.only(right: 6),
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _color == c ? Colors.grey[300] : Colors.transparent,
-          ),
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: c,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.black26,
-                width: 1,
-              ),
-            ),
-          ),
+    onTap: () => setState(() => _color = c),
+    child: Container(
+      margin: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: _color == c ? Colors.grey[300] : Colors.transparent,
+      ),
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: c,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black26, width: 1),
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _widthBtn(double width) => GestureDetector(
-        onTap: () => setState(() => _strokeWidth = width),
-        child: Container(
-          margin: const EdgeInsets.only(right: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: _strokeWidth == width ? Colors.grey[300] : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            width.toStringAsFixed(0),
-            style: TextStyle(
-              fontWeight: _strokeWidth == width ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
+    onTap: () => setState(() => _strokeWidth = width),
+    child: Container(
+      margin: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: _strokeWidth == width ? Colors.grey[300] : Colors.transparent,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        width.toStringAsFixed(0),
+        style: TextStyle(
+          fontWeight: _strokeWidth == width
+              ? FontWeight.bold
+              : FontWeight.normal,
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _toolBtn(IconData i, Tool t) => Container(
-        margin: const EdgeInsets.only(right: 4),
-        decoration: BoxDecoration(
-          color: _tool == t ? Colors.grey[300] : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: IconButton(
-          icon: Icon(i,
-              color: _tool == t
-                  ? Theme.of(context).colorScheme.primary
-                  : Colors.black54),
-          onPressed: () => setState(() => _tool = t),
-        ),
-      );
-
+    margin: const EdgeInsets.only(right: 4),
+    decoration: BoxDecoration(
+      color: _tool == t ? Colors.grey[300] : Colors.transparent,
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: IconButton(
+      icon: Icon(
+        i,
+        color: _tool == t
+            ? Theme.of(context).colorScheme.primary
+            : Colors.black54,
+      ),
+      onPressed: () => setState(() => _tool = t),
+    ),
+  );
 
   // gestures
   void _start(DragStartDetails d) => setState(() {
-        final pos = _clampLocal(d.localPosition);
-        final rel = _toRel(pos);
+    final pos = _clampLocal(d.localPosition);
+    final rel = _toRel(pos);
 
-        if (_tool == Tool.move) {
-          for (final s in _elements.reversed) {
-            if (s.hitTest(pos, _imgSize)) {
-              _selected = s;
-              _lastRel  = rel;
-              break;
-            }
-          }
-          return;
+    if (_tool == Tool.move) {
+      for (final s in _elements.reversed) {
+        if (s.hitTest(pos, _imgSize)) {
+          _selected = s;
+          _lastRel = rel;
+          break;
         }
+      }
+      return;
+    }
 
-        switch (_tool) {
-          case Tool.pen:
-            _draft = PenShape([rel], _color, _strokeWidth); 
-          case Tool.rect:
-            _draft = RectShape(rel, rel, _color, _strokeWidth); 
-          case Tool.circle:
-            _draft = CircleShape(rel, rel, _color, _strokeWidth); 
-          default:
-            break;
-        }
-      });
+    switch (_tool) {
+      case Tool.pen:
+        _draft = PenShape([rel], _color, _strokeWidth);
+      case Tool.rect:
+        _draft = RectShape(rel, rel, _color, _strokeWidth);
+      case Tool.circle:
+        _draft = CircleShape(rel, rel, _color, _strokeWidth);
+      default:
+        break;
+    }
+  });
 
   void _update(DragUpdateDetails d) => setState(() {
-        final pos = _clampLocal(d.localPosition);
-        final rel = _toRel(pos);
+    final pos = _clampLocal(d.localPosition);
+    final rel = _toRel(pos);
 
-        if (_tool == Tool.move && _selected != null && _lastRel != null) {
-          _selected!.translateRel(rel - _lastRel!);
-          _lastRel = rel;
-          return;
-        }
+    if (_tool == Tool.move && _selected != null && _lastRel != null) {
+      _selected!.translateRel(rel - _lastRel!);
+      _lastRel = rel;
+      return;
+    }
 
-        if (_draft is PenShape) {
-          (_draft as PenShape).pts.add(rel);
-        } else if (_draft is RectShape) {
-          (_draft as RectShape).p2 = rel;
-        } else if (_draft is CircleShape) {
-          (_draft as CircleShape).b = rel;
-        }
-      });
+    if (_draft is PenShape) {
+      (_draft as PenShape).pts.add(rel);
+    } else if (_draft is RectShape) {
+      (_draft as RectShape).p2 = rel;
+    } else if (_draft is CircleShape) {
+      (_draft as CircleShape).b = rel;
+    }
+  });
 
   void _end(DragEndDetails d) => setState(() {
-        if (_tool == Tool.move) {
-          _selected = null;
-          _lastRel  = null;
-          _commit();
-          return;
-        }
-        if (_draft != null) {
-          _elements.add(_draft!.clone());
-          _draft = null;
-          _commit();
-        }
-      });
+    if (_tool == Tool.move) {
+      _selected = null;
+      _lastRel = null;
+      _commit();
+      return;
+    }
+    if (_draft != null) {
+      _elements.add(_draft!.clone());
+      _draft = null;
+      _commit();
+    }
+  });
 
   // undo / redo
   void _undo() {
@@ -337,7 +348,8 @@ class _AnnotatePageState extends State<AnnotatePage> {
       final shapesXml = _elements
           .map((e) => e.toSvg(Size(w.toDouble(), h.toDouble())).toXmlString())
           .join('\n  ');
-      final svg = '''
+      final svg =
+          '''
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -358,8 +370,9 @@ class _AnnotatePageState extends State<AnnotatePage> {
       if (path == null) return;
       await File(path).writeAsString(svg);
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Saved: ${p.basename(path)}')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Saved: ${p.basename(path)}')));
       }
     } catch (e) {
       debugPrint('Save SVG error: $e');
