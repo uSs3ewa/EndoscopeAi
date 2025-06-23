@@ -100,18 +100,38 @@ class StreamPageView extends StatelessWidget {
         floatingActionButton: Builder(
           builder: (context) {
             final model = Provider.of<StreamPageModel>(context, listen: true);
-            return model.isInitialized
-                ? FloatingActionButton(
-                    onPressed: () async {
-                      final image = await model.takePicture();
-                      if (image != null) {
-                        onPictureTaken(image);
-                      }
-                    },
-                    child: const Icon(Icons.camera_alt),
-                  )
-                : const SizedBox.shrink(); // Возвращаем пустой виджет вместо null
-          },
+            if (!model.isInitialized) {
+              return const SizedBox.shrink();
+            }
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton(
+                  heroTag: 'shot',
+                  onPressed: () async {
+                    final image = await model.takePicture();
+                    if (image != null) {
+                      onPictureTaken(image);
+                    }
+                  },
+                  child: const Icon(Icons.camera_alt),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton(
+                  heroTag: 'rec',
+                  backgroundColor:
+                      model.isRecording ? Colors.red : const Color(0xFF2196F3),
+                  onPressed: () async {
+                    if (model.isRecording) {
+                      await model.stopVideoRecording();
+                    } else {
+                      await model.startVideoRecording();
+                    }
+                  },
+                  child: Icon(model.isRecording ? Icons.stop : Icons.videocam),
+                ),
+              ],
+            );          },
         ),
       ),
     );
