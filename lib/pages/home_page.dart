@@ -9,8 +9,15 @@ import '../shared/widget/buttons.dart';
 import '../shared/widget/spacing.dart';
 
 // Страница начального окна
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool _disableControls = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,27 +41,41 @@ class HomePage extends StatelessWidget {
   // Импорт
   Widget _createVideoPlayerButton(context) {
     return ElevatedButton(
-      onPressed: () async {
-        FilePicker.pickFile()
-            .then((_) {
-              Navigator.pushNamed(context, Routes.fileVideoPlayer);
-            })
-            .onError(
-              (error, tr) => showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Ошибка открытия файла'),
-                  content: Text('$error'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('Ok'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-      },
+      onPressed: _disableControls
+          ? null
+          : () async {
+              try {
+                setState(() {
+                  _disableControls = true;
+                });
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Открыаем меню...')));
+                }
+                await FilePicker.pickFile();
+
+                Navigator.pushNamed(context, Routes.fileVideoPlayer);
+              } catch (error) {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Ошибка открытия файла'),
+                    content: Text('$error'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text('Ok'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              setState(() {
+                _disableControls = false;
+              });
+            },
       child: const Text('Открыть видеоплеер'),
     );
   }
@@ -65,6 +86,7 @@ class HomePage extends StatelessWidget {
       context,
       'Открыть видеозаписи',
       Routes.recordings,
+      disable: _disableControls,
     );
   }
 
@@ -74,6 +96,7 @@ class HomePage extends StatelessWidget {
       context,
       'Открыть стриминговый плеер',
       Routes.streamVideoPlayer,
+      disable: _disableControls,
     );
   }
 }
