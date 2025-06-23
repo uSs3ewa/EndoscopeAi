@@ -10,12 +10,15 @@ import '../../routes.dart';
 Widget createRedirectButton(
   BuildContext context,
   String text,
-  String routePath,
-) {
+  String routePath, {
+  bool disable = false,
+}) {
   return ElevatedButton(
-    onPressed: () {
-      Navigator.pushNamed(context, routePath);
-    },
+    onPressed: disable
+        ? null
+        : () {
+            Navigator.pushNamed(context, routePath);
+          },
     child: Text(text),
   );
 }
