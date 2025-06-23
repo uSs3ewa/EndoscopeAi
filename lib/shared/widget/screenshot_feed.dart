@@ -2,7 +2,7 @@
 //  Виджет ленты просмотра скриншотов
 // ====================================================
 
-import 'package:namer_app/shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:flutter/material.dart';
 
 class ScreenshotFeed extends StatelessWidget {

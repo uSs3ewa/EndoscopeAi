@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:namer_app/pages/models/file_video_page_model.dart';
-import 'package:namer_app/shared/widget/slider.dart';
-import '../../shared/utility/strings.dart';
+import 'package:endoscopy_ai/pages/models/file_video_page_model.dart';
+import 'package:endoscopy_ai/shared/widget/slider.dart';
+import 'package:endoscopy_ai/shared/utility/strings.dart';
 
-class CustomSlider extends StatelessWidget{
+class CustomSlider extends StatelessWidget {
   final FileVideoPlayerPageStateModel modelVideoPlayer;
 
-  const CustomSlider({
-    required this.modelVideoPlayer,
-    });
+  const CustomSlider({required this.modelVideoPlayer});
 
   Widget build(BuildContext context) {
     return Positioned(

@@ -4,11 +4,11 @@
 // ====================================================
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:namer_app/shared/widget/screenshot_feed.dart';
-import 'package:namer_app/shared/widget/spacing.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_feed.dart';
+import 'package:endoscopy_ai/shared/widget/spacing.dart';
 import 'package:provider/provider.dart';
-import '../models/stream_page_model.dart';
-import '../../shared/widget/buttons.dart';
+import 'package:endoscopy_ai/pages/models/stream_page_model.dart';
+import 'package:endoscopy_ai/shared/widget/buttons.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class StreamPageView extends StatelessWidget {
@@ -64,8 +64,14 @@ class StreamPageView extends StatelessWidget {
                             children: [
                               Icon(Icons.videocam_off, size: 50),
                               SizedBox(height: 16),
-                              Text('Камера недоступна', style: TextStyle(fontSize: 18)),
-                              Text('Попробуйте проверить подключение', style: TextStyle(color: Colors.grey)),
+                              Text(
+                                'Камера недоступна',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              Text(
+                                'Попробуйте проверить подключение',
+                                style: TextStyle(color: Colors.grey),
+                              ),
                             ],
                           ),
                         );

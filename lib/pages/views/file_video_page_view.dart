@@ -3,15 +3,15 @@
 //  Логика, содержащая логику, связанную с UI
 // ====================================================
 import 'package:fvp/fvp.dart' as fvp;
-import 'package:namer_app/shared/utility/strings.dart';
-import 'package:namer_app/shared/widget/play_pause_button.dart';
+import 'package:endoscopy_ai/shared/utility/strings.dart';
+import 'package:endoscopy_ai/shared/widget/play_pause_button.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
-import '../models/file_video_page_model.dart';
-import '../../shared/widget/spacing.dart';
-import '../../shared/widget/screenshot_preview.dart';
-import '../../shared/widget/custom_slider.dart';
-import '../../shared/widget/screenshot_feed.dart';
+import 'package:endoscopy_ai/pages/models/file_video_page_model.dart';
+import 'package:endoscopy_ai/shared/widget/spacing.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/shared/widget/custom_slider.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_feed.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class FileVidePlayerPageStateView {
@@ -80,8 +80,8 @@ class FileVidePlayerPageStateView {
             aspectRatio: _model.controller.value.aspectRatio,
             child: VideoPlayer(_model.controller),
           ),
-          if (_model.showControls) PlayPauseButton(model: _model,),
-          if (_model.showControls) CustomSlider(modelVideoPlayer: _model,),
+          if (_model.showControls) PlayPauseButton(model: _model),
+          if (_model.showControls) CustomSlider(modelVideoPlayer: _model),
         ],
       ),
     );
@@ -99,4 +99,4 @@ class FileVidePlayerPageStateView {
       body: const Center(child: Text('Не удалось открыть файл')),
     );
   }
-  }
+}

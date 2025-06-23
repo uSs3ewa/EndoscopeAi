@@ -8,8 +8,8 @@ import 'package:fvp/fvp.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
-import '../../shared/file_choser.dart';
-import '../../shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/shared/file_choser.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
 // Модель содержащая, данные и логику
 class FileVideoPlayerPageStateModel {
@@ -63,7 +63,8 @@ class FileVideoPlayerPageStateModel {
   }
 
   // установить время на видео
-  void seekTo(Duration pos) { // !!!!!!!!!!!!!! Проблема с неймингом
+  void seekTo(Duration pos) {
+    // !!!!!!!!!!!!!! Проблема с неймингом
     _controller.seekTo(pos);
     if (_isPlaying) {
       togglePlayPause(); // если было включено - поставим на паузу

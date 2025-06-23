@@ -6,7 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'models/stream_page_model.dart';
 import 'views/stream_page_view.dart';
-import '../shared/widget/buttons.dart';
+import 'package:endoscopy_ai/shared/widget/buttons.dart';
 
 // Страница просмотра потокового видео с камеры
 class StreamPage extends StatefulWidget {
@@ -38,7 +38,6 @@ class _StreamPageState extends State<StreamPage> {
       camera: widget.camera,
       onBackPressed: () => Navigator.pop(context),
       onPictureTaken: _handlePictureTaken,
-    
     );
     _initializeModel();
   }
@@ -78,11 +77,9 @@ class _StreamPageState extends State<StreamPage> {
   @override
   Widget build(BuildContext context) {
     if (!_isModelInitialized) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    
+
     return _view.build(context);
   }
 }

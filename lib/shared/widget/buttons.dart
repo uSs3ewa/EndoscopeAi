@@ -3,7 +3,7 @@
 // ====================================================
 
 import 'package:flutter/material.dart';
-import '../../routes.dart';
+import 'package:endoscopy_ai/routes.dart';
 
 // Создает кнопку с текстом `text`, которая при нажатии перебрасывает на
 // страницу `route_path`, сохраняя текущее состояние.

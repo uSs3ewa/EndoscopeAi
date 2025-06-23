@@ -2,8 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:namer_app/pages/models/file_video_page_model.dart';
-import 'package:namer_app/shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/pages/models/file_video_page_model.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
 class MarkersModel {
   final GlobalKey sliderKey;

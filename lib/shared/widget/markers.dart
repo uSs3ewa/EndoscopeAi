@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:namer_app/shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
 class MarksPainter extends CustomPainter {
   final List<ScreenshotPreviewModel> shots;
@@ -26,13 +26,14 @@ class MarksPainter extends CustomPainter {
       final positionMs = shot.position.inMilliseconds.toDouble();
       final totalMs = totalDuration.inMilliseconds.toDouble();
       final x = (positionMs / totalMs) * size.width;
-      
-      final isActive = (positionMs - currentPosition.inMilliseconds).abs() < 100;
-      
+
+      final isActive =
+          (positionMs - currentPosition.inMilliseconds).abs() < 100;
+
       canvas.drawLine(
         Offset(x, size.height / 2 + 14),
         Offset(x, size.height / 2 - 2),
-        isActive ? activePaint : paint, 
+        isActive ? activePaint : paint,
       );
     }
   }
