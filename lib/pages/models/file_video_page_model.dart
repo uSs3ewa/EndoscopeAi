@@ -27,7 +27,7 @@ class FileVideoPlayerPageStateModel {
   Duration totalDuration = Duration.zero;
   final List<ScreenshotPreviewModel> _shots = []; // список миниатюр
   late Directory _shotsDir; // директория …/screenshots
-  final PythonService _python = const PythonService();
+  final PythonService _python = PythonService();
 
   bool get isPlaying => _isPlaying;
   bool get isValidFile => _isValidFile;
@@ -136,10 +136,7 @@ class FileVideoPlayerPageStateModel {
 
   Future<String> analyzeVideo() async {
     final input = FilePicker.filePath!;
-    final out = p.join(
-      p.dirname(input),
-      'annotated_\${p.basename(input)}',
-    );
+    final out = p.join(p.dirname(input), 'annotated_\${p.basename(input)}');
     await _python.processVideo(input, out);
     return out;
   }

@@ -36,7 +36,7 @@ class _AnnotatePageState extends State<AnnotatePage> {
   double _strokeWidth = 3.0;
   final List<double> _availableWidths = [1.0, 3.0, 5.0, 8.0, 12.0];
 
-  final _python = const PythonService();
+  final _python = PythonService();
 
   final _elements = <Shape>[];
   Shape? _draft;
@@ -76,10 +76,7 @@ class _AnnotatePageState extends State<AnnotatePage> {
             onPressed: _histIx == _history.length - 1 ? null : _redo,
           ),
           IconButton(icon: const Icon(Icons.save), onPressed: _saveSvg),
-          IconButton(
-            icon: const Icon(Icons.bug_report),
-            onPressed: _runAi,
-          ),
+          IconButton(icon: const Icon(Icons.bug_report), onPressed: _runAi),
         ],
       ),
       body: Row(
@@ -341,10 +338,11 @@ class _AnnotatePageState extends State<AnnotatePage> {
     }
   }
 
-
   Future<void> _runAi() async {
     final detections = await _python.detectImage(widget.imagePath);
-    final img = await decodeImageFromList(File(widget.imagePath).readAsBytesSync());
+    final img = await decodeImageFromList(
+      File(widget.imagePath).readAsBytesSync(),
+    );
     for (final d in detections) {
       final x1 = (d['x1'] as num).toDouble() / img.width;
       final y1 = (d['y1'] as num).toDouble() / img.height;

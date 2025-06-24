@@ -38,7 +38,7 @@ class StreamPageView extends StatelessWidget {
 
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: model, 
+      value: model,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Поток с камеры'),
@@ -110,7 +110,8 @@ class StreamPageView extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),              ],
+                ),
+              ],
             );
           },
         ),
@@ -136,21 +137,24 @@ class StreamPageView extends StatelessWidget {
                 const SizedBox(height: 8),
                 FloatingActionButton(
                   heroTag: 'rec_btn',
-                  backgroundColor:
-                      model.isRecording ? Colors.red : const Color(0xFF2196F3),
+                  backgroundColor: model.recording
+                      ? Colors.red
+                      : const Color(0xFF2196F3),
                   onPressed: () async {
-                    if (model.isRecording) {
+                    if (model.recording) {
                       final path = await model.stopRecording();
                       if (context.mounted && path != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Saved: \${p.basename(path)}')),
+                          SnackBar(
+                            content: Text('Saved: \${p.basename(path)}'),
+                          ),
                         );
                       }
                     } else {
                       await model.startRecording();
                     }
                   },
-                  child: Icon(model.isRecording ? Icons.stop : Icons.mic),
+                  child: Icon(model.recording ? Icons.stop : Icons.mic),
                 ),
               ],
             );
@@ -159,4 +163,4 @@ class StreamPageView extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -16,7 +16,7 @@ class AiToolsPage extends StatefulWidget {
 }
 
 class _AiToolsPageState extends State<AiToolsPage> {
-  final _python = const PythonService();
+  final _python = PythonService();
   String _sttResult = '';
   String _detectResult = '';
   bool _processingStt = false;
@@ -38,9 +38,7 @@ class _AiToolsPageState extends State<AiToolsPage> {
   }
 
   Future<void> _pickImageAndDetect() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-    );
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result == null) return;
     setState(() => _processingDetect = true);
     final path = result.files.single.path!;
@@ -52,16 +50,11 @@ class _AiToolsPageState extends State<AiToolsPage> {
   }
 
   Future<void> _pickVideoAndDetect() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.video,
-    );
+    final result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result == null) return;
     setState(() => _processingDetect = true);
     final input = result.files.single.path!;
-    final out = p.join(
-      p.dirname(input),
-      'annotated_${p.basename(input)}',
-    );
+    final out = p.join(p.dirname(input), 'annotated_${p.basename(input)}');
     await _python.processVideo(input, out);
     setState(() {
       _processingDetect = false;
@@ -79,7 +72,10 @@ class _AiToolsPageState extends State<AiToolsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Распознавание речи', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Распознавание речи',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: _processingStt ? null : _pickAudioAndTranscribe,
@@ -96,7 +92,10 @@ class _AiToolsPageState extends State<AiToolsPage> {
                   child: Text(_sttResult),
                 ),
               const SizedBox(height: 24),
-              Text('Поиск аномалий', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Поиск аномалий',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
