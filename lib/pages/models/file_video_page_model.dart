@@ -10,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:endoscopy_ai/shared/file_choser.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/backend/python_service.dart';
+import 'package:path/path.dart' as p;
 
 // Модель содержащая, данные и логику
 class FileVideoPlayerPageStateModel {
@@ -25,6 +27,7 @@ class FileVideoPlayerPageStateModel {
   Duration totalDuration = Duration.zero;
   final List<ScreenshotPreviewModel> _shots = []; // список миниатюр
   late Directory _shotsDir; // директория …/screenshots
+  final PythonService _python = const PythonService();
 
   bool get isPlaying => _isPlaying;
   bool get isValidFile => _isValidFile;
@@ -129,6 +132,16 @@ class FileVideoPlayerPageStateModel {
 
       print('ОШИБКА СОЗАДНИЯ СКРИНШОТА: $error');
     }
+  }
+
+  Future<String> analyzeVideo() async {
+    final input = FilePicker.filePath!;
+    final out = p.join(
+      p.dirname(input),
+      'annotated_\${p.basename(input)}',
+    );
+    await _python.processVideo(input, out);
+    return out;
   }
 
   // смена состояния проигрывания

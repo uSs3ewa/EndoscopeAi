@@ -16,6 +16,11 @@ class FilePicker {
   // Проверка существования файла
   static bool checkFile() => _filePath != null;
 
+  static void open(String path) {
+    _filePath = path;
+    _fileName = p.basenameWithoutExtension(path);
+  }
+
   // Запрос системного диалогового окна для выбора файла
   // Выбранный файл будет записан в `filePath` и `fileName`
   static Future<void> pickFile() async {

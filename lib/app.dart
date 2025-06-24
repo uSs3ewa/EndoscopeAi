@@ -7,6 +7,7 @@ import 'package:camera/camera.dart';
 import 'pages/file_video_page.dart';
 import 'pages/home_page.dart';
 import 'pages/recordings_page.dart';
+import 'pages/ai/tools_page.dart';
 import 'routes.dart';
 import 'pages/stream_page.dart';
 import 'pages/annotate/annotate_page.dart';
@@ -59,6 +60,7 @@ class _AppState extends State<App> {
         Routes.recordings: (context) => RecordingsPage(),
         Routes.homePage: (context) => const HomePage(),
         Routes.fileVideoPlayer: (context) => const FileVidePlayerPage(),
+        Routes.aiTools: (context) => const AiToolsPage(),
         Routes.streamVideoPlayer: (context) {
           if (!_isCameraInitialized) {
             return const Scaffold(

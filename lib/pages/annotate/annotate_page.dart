@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path/path.dart' as p;
+import '../../backend/python_service.dart';
 
 import 'shapes.dart';
 
@@ -34,6 +35,8 @@ class _AnnotatePageState extends State<AnnotatePage> {
 
   double _strokeWidth = 3.0;
   final List<double> _availableWidths = [1.0, 3.0, 5.0, 8.0, 12.0];
+
+  final _python = const PythonService();
 
   final _elements = <Shape>[];
   Shape? _draft;
@@ -73,6 +76,10 @@ class _AnnotatePageState extends State<AnnotatePage> {
             onPressed: _histIx == _history.length - 1 ? null : _redo,
           ),
           IconButton(icon: const Icon(Icons.save), onPressed: _saveSvg),
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: _runAi,
+          ),
         ],
       ),
       body: Row(
@@ -332,6 +339,20 @@ class _AnnotatePageState extends State<AnnotatePage> {
           ..addAll(_history[_histIx].map((e) => e.clone()));
       });
     }
+  }
+
+
+  Future<void> _runAi() async {
+    final detections = await _python.detectImage(widget.imagePath);
+    final img = await decodeImageFromList(File(widget.imagePath).readAsBytesSync());
+    for (final d in detections) {
+      final x1 = (d['x1'] as num).toDouble() / img.width;
+      final y1 = (d['y1'] as num).toDouble() / img.height;
+      final x2 = (d['x2'] as num).toDouble() / img.width;
+      final y2 = (d['y2'] as num).toDouble() / img.height;
+      _elements.add(RectShape(Offset(x1, y1), Offset(x2, y2), Colors.red, 2));
+    }
+    setState(() => _commit());
   }
 
   // save SVG

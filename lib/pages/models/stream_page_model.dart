@@ -10,6 +10,10 @@
  import 'package:flutter/foundation.dart';
  import 'package:path_provider/path_provider.dart';
  import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
+ import 'package:endoscopy_ai/backend/python_service.dart';
+ import 'package:path_provider/path_provider.dart';
+ import 'package:path/path.dart' as p;
+ import 'dart:io';
  
  class StreamPageModel with ChangeNotifier {
    final CameraDescription cameraDescription; // данные о камере
@@ -20,9 +24,15 @@
    final List<String> _recordings = []; // список записанных видео
    late final Future<void> cameraInitialized; // состояние инициализации камеры
    Timer? _cameraCheckTimer; // Таймер для периодической проверки
+   final PythonService _python = const PythonService();
+   StreamSubscription<String>? _sttSub;
+   final List<String> _transcripts = [];
    bool _isRecording = false;
-   Directory? _recordingsDir;
- 
+   late Directory _recordDir;
+
+   bool get isRecording => _isRecording;
+   List<String> get transcripts => _transcripts; 
+
    // Геттеры/сеттеры
    bool get isInitialized => _isInitialized;
    bool get cameraAvailable => _cameraAvailable; // Геттер для доступности камеры
@@ -34,6 +44,7 @@
    // `cameraDescription` -  данные о камере
    StreamPageModel({required this.cameraDescription}) {
      cameraInitialized = _initializeCamera();
+     _prepareDirs();
      _startCameraCheckTimer();
    }
  
@@ -60,6 +71,14 @@
      await _initializeCamera();
      _startCameraCheckTimer();
    }
+
+   Future<void> _prepareDirs() async {
+    final base = await getApplicationDocumentsDirectory();
+    _recordDir = Directory(p.join(base.path, 'recordings'));
+    if (!await _recordDir.exists()) {
+      await _recordDir.create(recursive: true);
+    }
+  }
  
    // Метод для проверки состояния камеры
    Future<void> _checkCameraAvailability() async {
@@ -154,10 +173,41 @@
      final savedFile = await File(file.path).copy(path);
      return XFile(savedFile.path);
    }
+
+   Future<void> startRecording() async {
+    if (_isRecording || !_isInitialized) return;
+    await _controller.startVideoRecording();
+    _isRecording = true;
+    _transcripts.clear();
+    _sttSub = _python.listen().listen((t) {
+      if (t.trim().isEmpty) return;
+      _transcripts.add(t.trim());
+      notifyListeners();
+    });
+    notifyListeners();
+  }
+
+  Future<String?> stopRecording() async {
+    if (!_isRecording) return null;
+    final file = await _controller.stopVideoRecording();
+    _isRecording = false;
+    _sttSub?.cancel();
+    _python.stopListening();
+    final out = p.join(
+      _recordDir.path,
+      '${DateTime.now().millisecondsSinceEpoch}.mp4',
+    );
+    await File(file.path).copy(out);
+    notifyListeners();
+    return out;
+  }
  
    // Освобождение ресурсов
    void dispose() {
      print('StreamPageModel disposed');
+
+     _sttSub?.cancel();
+    _python.stopListening();
  
      if (_controller.value.isRecordingVideo) {
        _controller.stopVideoRecording();

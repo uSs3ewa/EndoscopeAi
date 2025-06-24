@@ -9,6 +9,7 @@ import 'package:endoscopy_ai/shared/widget/spacing.dart';
 import 'package:provider/provider.dart';
 import 'package:endoscopy_ai/pages/models/stream_page_model.dart';
 import 'package:endoscopy_ai/shared/widget/buttons.dart';
+import 'package:path/path.dart' as p;
 
 //  Логика, содержащая логику, связанную с UI
 class StreamPageView extends StatelessWidget {
@@ -36,8 +37,8 @@ class StreamPageView extends StatelessWidget {
   }) : super(key: key);
 
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => StreamPageModel(cameraDescription: camera),
+    return ChangeNotifierProvider.value(
+      value: model, 
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Поток с камеры'),
@@ -90,8 +91,26 @@ class StreamPageView extends StatelessWidget {
                   ),
                 ),
                 createIndention(),
-                ScreenshotFeed(onFetchScreenshots: () => model.shots),
-              ],
+                Expanded(
+                  child: Column(
+                    children: [
+                      ScreenshotFeed(onFetchScreenshots: () => model.shots),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListView(
+                              children: [
+                                for (final t in model.transcripts) Text(t),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),              ],
             );
           },
         ),
@@ -100,14 +119,12 @@ class StreamPageView extends StatelessWidget {
         floatingActionButton: Builder(
           builder: (context) {
             final model = Provider.of<StreamPageModel>(context, listen: true);
-            if (!model.isInitialized) {
-              return const SizedBox.shrink();
-            }
+            if (!model.isInitialized) return const SizedBox.shrink();
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 FloatingActionButton(
-                  heroTag: 'shot',
+                  heroTag: 'shot_btn',
                   onPressed: () async {
                     final image = await model.takePicture();
                     if (image != null) {
@@ -118,22 +135,28 @@ class StreamPageView extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 FloatingActionButton(
-                  heroTag: 'rec',
+                  heroTag: 'rec_btn',
                   backgroundColor:
                       model.isRecording ? Colors.red : const Color(0xFF2196F3),
                   onPressed: () async {
                     if (model.isRecording) {
-                      await model.stopVideoRecording();
+                      final path = await model.stopRecording();
+                      if (context.mounted && path != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Saved: \${p.basename(path)}')),
+                        );
+                      }
                     } else {
-                      await model.startVideoRecording();
+                      await model.startRecording();
                     }
                   },
-                  child: Icon(model.isRecording ? Icons.stop : Icons.videocam),
+                  child: Icon(model.isRecording ? Icons.stop : Icons.mic),
                 ),
               ],
-            );          },
+            );
+          },
         ),
       ),
     );
   }
-}
+} 
