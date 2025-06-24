@@ -121,42 +121,102 @@ class StreamPageView extends StatelessWidget {
           builder: (context) {
             final model = Provider.of<StreamPageModel>(context, listen: true);
             if (!model.isInitialized) return const SizedBox.shrink();
+                final buttons = <Widget>[
+                    FloatingActionButton(
+                        heroTag: 'shot_btn',
+                        onPressed: () async {
+                            final image = await model.takePicture();
+                            if (image != null) {
+                                onPictureTaken(image);
+                            }
+                        },
+                        child: const Icon(Icons.camera_alt),
+                    ),
+
+                ];
+
+                void addSpace() => buttons.add(const SizedBox(height: 8));
+
+                if (!model.recording) {
+                    addSpace();
+                    buttons.add(
+                        FloatingActionButton.extended(
+                            heroTag: 'start_rec_btn',
+                            icon: const Icon(Icons.fiber_manual_record),
+                            label: const Text('Начать видеозапись'),
+                            backgroundColor: Colors.red,
+                            onPressed: () async {
+                    await model.startRecording();
+                  },
+                ),
+              );
+            } else if (model.paused) {
+              addSpace();
+              buttons.add(
+                FloatingActionButton.extended(
+                  heroTag: 'resume_rec_btn',
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Продолжить запись'),
+                  onPressed: () async {
+                    await model.resumeRecording();
+                  },
+                ),
+              );
+              addSpace();
+              buttons.add(
+                FloatingActionButton.extended(
+                  heroTag: 'finish_rec_btn',
+                  icon: const Icon(Icons.stop),
+                  label: const Text('Завершить запись'),
+                  backgroundColor: Colors.red,
+                  onPressed: () async {
+                    final path = await model.stopRecording();
+                    if (context.mounted && path != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Saved: \${p.basename(path)}'),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              );
+            } else {
+              addSpace();
+              buttons.add(
+                FloatingActionButton.extended(
+                  heroTag: 'pause_rec_btn',
+                  icon: const Icon(Icons.pause),
+                  label: const Text('Остановить запись'),
+                  onPressed: () async {
+                    await model.pauseRecording();
+                  },
+                ),
+              );
+              addSpace();
+              buttons.add(
+                FloatingActionButton.extended(
+                  heroTag: 'finish_rec_btn',
+                  icon: const Icon(Icons.stop),
+                  label: const Text('Завершить запись'),
+                  backgroundColor: Colors.red,
+                  onPressed: () async {
+                    final path = await model.stopRecording();
+                    if (context.mounted && path != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Saved: \${p.basename(path)}'),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              );
+            }
+
             return Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                FloatingActionButton(
-                  heroTag: 'shot_btn',
-                  onPressed: () async {
-                    final image = await model.takePicture();
-                    if (image != null) {
-                      onPictureTaken(image);
-                    }
-                  },
-                  child: const Icon(Icons.camera_alt),
-                ),
-                const SizedBox(height: 8),
-                FloatingActionButton(
-                  heroTag: 'rec_btn',
-                  backgroundColor: model.recording
-                      ? Colors.red
-                      : const Color(0xFF2196F3),
-                  onPressed: () async {
-                    if (model.recording) {
-                      final path = await model.stopRecording();
-                      if (context.mounted && path != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Saved: \${p.basename(path)}'),
-                          ),
-                        );
-                      }
-                    } else {
-                      await model.startRecording();
-                    }
-                  },
-                  child: Icon(model.recording ? Icons.stop : Icons.mic),
-                ),
-              ],
+              children: buttons,
             );
           },
         ),
@@ -164,3 +224,4 @@ class StreamPageView extends StatelessWidget {
     );
   }
 }
+                            

@@ -26,9 +26,11 @@ class StreamPageModel with ChangeNotifier {
   StreamSubscription<String>? _sttSub;
   final List<String> _transcripts = [];
   bool _isRecording = false;
+  bool _isPaused = false;
   late final Directory _recordingsDir;
 
   bool get recording => _isRecording;
+  bool get paused => _isPaused;
   List<String> get transcripts => _transcripts;
 
   // Геттеры/сеттеры
@@ -127,6 +129,7 @@ class StreamPageModel with ChangeNotifier {
     if (_isRecording || !_isInitialized) return;
     await _controller.startVideoRecording();
     _isRecording = true;
+    _isPaused = false;
     _transcripts.clear();
     _sttSub = _python.listen().listen((t) {
       if (t.trim().isEmpty) return;
@@ -136,10 +139,32 @@ class StreamPageModel with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> pauseRecording() async {
+    if (!_isRecording || _isPaused) return;
+    await _controller.pauseVideoRecording();
+    _isPaused = true;
+    _sttSub?.cancel();
+    _python.stopListening();
+    notifyListeners();
+  }
+
+  Future<void> resumeRecording() async {
+    if (!_isRecording || !_isPaused) return;
+    await _controller.resumeVideoRecording();
+    _isPaused = false;
+    _sttSub = _python.listen().listen((t) {
+        if (t.trim().isEmpty) return;
+        _transcripts.add(t.trim);
+        notifyListeners();
+    })
+    notifyListeners();
+  }
+
   Future<String?> stopRecording() async {
     if (!_isRecording) return null;
     final file = await _controller.stopVideoRecording();
     _isRecording = false;
+    _isPaused = false;
     _sttSub?.cancel();
     _python.stopListening();
     final out = p.join(
@@ -163,6 +188,7 @@ class StreamPageModel with ChangeNotifier {
     }
     _controller.dispose();
     _isInitialized = false;
+    _isPaused = false;
     _cameraCheckTimer?.cancel();
   }
 }
