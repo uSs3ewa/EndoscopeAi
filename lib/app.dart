@@ -1,15 +1,12 @@
 // ====================================================
 //  Главное окно приложения, на котором производится отрисовка
 // ====================================================
+import 'routes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 
-import 'pages/file_video_page.dart';
-import 'pages/home_page.dart';
-import 'pages/recordings_page.dart';
-import 'routes.dart';
-import 'pages/stream_page.dart';
-import 'pages/annotate/annotate_page.dart';
+import 'pages/pages.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -21,7 +18,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   List<CameraDescription> cameras = [];
   bool _isCameraInitialized = false;
-   bool _hasCameraError = false;
+  bool _hasCameraError = false;
 
   @override
   void initState() {

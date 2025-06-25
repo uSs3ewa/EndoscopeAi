@@ -3,8 +3,8 @@
 //  Здесь описан UI
 // ====================================================
 import 'package:flutter/material.dart';
-import '../../shared/widget/buttons.dart';
-import '../models/recordings_page_model.dart';
+import 'package:endoscopy_ai/shared/widget/buttons.dart';
+import 'recordings_model.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class RecordingsPageView {

@@ -1,11 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:namer_app/pages/models/file_video_page_model.dart';
-import 'package:namer_app/shared/widget/markers.dart';
-import 'package:namer_app/shared/widget/markers_model.dart';
-import 'package:namer_app/shared/widget/screenshot_preview.dart';
-import '../../routes.dart';              // для навигации
+import 'package:endoscopy_ai/pages/file_video/file_video_model.dart';
+import 'package:endoscopy_ai/shared/widget/markers.dart';
+import 'package:endoscopy_ai/shared/widget/markers_model.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
 class CustomSliderWithMarks extends StatefulWidget {
   final Duration currentPosition;
@@ -22,23 +19,26 @@ class CustomSliderWithMarks extends StatefulWidget {
   });
 
   @override
-  _CustomSliderWithMarksState createState() => _CustomSliderWithMarksState(modelVideoPlayer: this.modelVideoPlayer);
+  _CustomSliderWithMarksState createState() =>
+      _CustomSliderWithMarksState(modelVideoPlayer: this.modelVideoPlayer);
 }
 
 class _CustomSliderWithMarksState extends State<CustomSliderWithMarks> {
   final GlobalKey _sliderKey = GlobalKey();
   final FileVideoPlayerPageStateModel modelVideoPlayer;
 
-  _CustomSliderWithMarksState({
-    required this.modelVideoPlayer,
-  });
-
+  _CustomSliderWithMarksState({required this.modelVideoPlayer});
 
   @override
   Widget build(BuildContext context) {
     const marksRightPadding = 24.5;
     const marksLeftPadding = marksRightPadding - 0.75;
-    MarkersModel marksModel = MarkersModel(marksLeftPadding, marksRightPadding, sliderKey: _sliderKey, modelVideoPlayer: modelVideoPlayer);
+    MarkersModel marksModel = MarkersModel(
+      marksLeftPadding,
+      marksRightPadding,
+      sliderKey: _sliderKey,
+      modelVideoPlayer: modelVideoPlayer,
+    );
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -66,26 +66,28 @@ class _CustomSliderWithMarksState extends State<CustomSliderWithMarks> {
     );
   }
 
-  StatefulWidget getSlider(){
+  StatefulWidget getSlider() {
     return Slider(
-          key: _sliderKey,
-          activeColor: const Color.fromARGB(255, 167, 38, 29),
-          inactiveColor: Colors.grey[600],
-          value: modelVideoPlayer.currentPosition.inMilliseconds.toDouble(),
-          min: 0,
-          max: modelVideoPlayer.totalDuration.inMilliseconds.toDouble(),
-          onChanged: (value) {
+      key: _sliderKey,
+      activeColor: const Color.fromARGB(255, 167, 38, 29),
+      inactiveColor: Colors.grey[600],
+      value: modelVideoPlayer.currentPosition.inMilliseconds.toDouble(),
+      min: 0,
+      max: modelVideoPlayer.totalDuration.inMilliseconds.toDouble(),
+      onChanged: (value) {
         setState(() {
-          modelVideoPlayer.currentPosition = Duration(milliseconds: value.toInt());
+          modelVideoPlayer.currentPosition = Duration(
+            milliseconds: value.toInt(),
+          );
           modelVideoPlayer.controller.seekTo(modelVideoPlayer.currentPosition);
         });
       },
-          onChangeStart: (_) {
+      onChangeStart: (_) {
         if (!modelVideoPlayer.isPlaying) modelVideoPlayer.controller.pause();
       },
-          onChangeEnd: (_) {
+      onChangeEnd: (_) {
         if (modelVideoPlayer.isPlaying) modelVideoPlayer.controller.play();
       },
-        );
+    );
   }
 }

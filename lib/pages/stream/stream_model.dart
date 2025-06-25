@@ -7,13 +7,13 @@ import 'dart:async';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
-import '../../shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
-class StreamPageModel with ChangeNotifier{
+class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
   late CameraController _controller;
   bool _isInitialized = false; // инициализированная ли камера
-   bool _cameraAvailable = true; // доступна ли камера
+  bool _cameraAvailable = true; // доступна ли камера
   final List<ScreenshotPreviewModel> _shots = []; // список миниатюр
   late final Future<void> cameraInitialized; // состояние инициализации камеры
   Timer? _cameraCheckTimer; // Таймер для периодической проверки
@@ -27,7 +27,7 @@ class StreamPageModel with ChangeNotifier{
   // `cameraDescription` -  данные о камере
   StreamPageModel({required this.cameraDescription}) {
     cameraInitialized = _initializeCamera();
-     _startCameraCheckTimer();
+    _startCameraCheckTimer();
   }
 
   // Инициализация контроллера камеры
@@ -49,9 +49,9 @@ class StreamPageModel with ChangeNotifier{
   }
 
   Future<void> initialize() async {
-  await _initializeCamera();
-  _startCameraCheckTimer();
-}
+    await _initializeCamera();
+    _startCameraCheckTimer();
+  }
 
   // Метод для проверки состояния камеры
   Future<void> _checkCameraAvailability() async {

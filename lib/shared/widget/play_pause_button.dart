@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:namer_app/pages/models/file_video_page_model.dart';
+import 'package:endoscopy_ai/pages/file_video/file_video_model.dart';
 
-class PlayPauseButton extends StatelessWidget{
+class PlayPauseButton extends StatelessWidget {
   // создает кнопку паузы
   final FileVideoPlayerPageStateModel model;
 
-  PlayPauseButton({
-    required this.model,
-  });
+  PlayPauseButton({required this.model});
 
   @override
   Widget build(BuildContext context) {
