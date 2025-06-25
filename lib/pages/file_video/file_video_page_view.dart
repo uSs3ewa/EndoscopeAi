@@ -7,7 +7,7 @@ import 'package:endoscopy_ai/shared/utility/strings.dart';
 import 'package:endoscopy_ai/shared/widget/play_pause_button.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
-import 'package:endoscopy_ai/pages/models/file_video_page_model.dart';
+import 'package:endoscopy_ai/pages/file_video/file_video_page_model.dart';
 import 'package:endoscopy_ai/shared/widget/spacing.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:endoscopy_ai/shared/widget/custom_slider.dart';

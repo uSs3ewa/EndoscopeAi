@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:endoscopy_ai/pages/models/file_video_page_model.dart';
+import 'package:endoscopy_ai/pages/file_video/file_video_page_model.dart';
 
 class PlayPauseButton extends StatelessWidget {
   // создает кнопку паузы

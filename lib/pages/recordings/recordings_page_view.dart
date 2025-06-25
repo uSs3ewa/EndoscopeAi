@@ -4,7 +4,7 @@
 // ====================================================
 import 'package:flutter/material.dart';
 import '../../shared/widget/buttons.dart';
-import '../models/recordings_page_model.dart';
+import 'recordings_page_model.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class RecordingsPageView {

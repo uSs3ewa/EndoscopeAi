@@ -4,8 +4,8 @@
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'models/stream_page_model.dart';
-import 'views/stream_page_view.dart';
+import 'stream_page_model.dart';
+import 'stream_page_view.dart';
 import 'package:endoscopy_ai/shared/widget/buttons.dart';
 
 // Страница просмотра потокового видео с камеры
