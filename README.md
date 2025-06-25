@@ -1,16 +1,15 @@
-# first_app
+# EndoscopeAi
 
-A new Flutter project.
+**Interactive support tool for endoscopic surveys**  
+for Pirogov Clinic of High Medical Technologies at St Petersburg University
 
-## Getting Started
+## Overview  
+This application is designed to support doctors during endoscopic examinations.  
+It helps to efficiently capture and annotate videos and images, record and structure findings, and use AI for real-time or post-procedure analysis.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## AI-powered features  
+The app integrates advanced AI technologies, including YOLO (You Only Look Once), to assist medical professionals by:  
+- Providing real-time image recognition and anomaly detection during endoscopic procedures  
+- Assisting with annotation and classification of findings  
+- Enhancing diagnostic accuracy and reducing review time  
+- Continuously improving models based on collected data and feedback
