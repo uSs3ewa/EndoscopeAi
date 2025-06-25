@@ -44,7 +44,7 @@ class _StreamPageState extends State<StreamPage> {
 
   Future<void> _initializeModel() async {
     try {
-      await _model.initialize();
+      await _model.cameraInitialized;
       setState(() {
         _isModelInitialized = true;
       });

@@ -16,7 +16,7 @@ import 'dart:io';
 
 class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
-  late CameraController _controller;
+  CameraController? _controller;
   bool _isInitialized = false; // инициализированная ли камера
   bool _cameraAvailable = true; // доступна ли камера
   final List<ScreenshotPreviewModel> _shots = []; // список миниатюр
@@ -36,7 +36,7 @@ class StreamPageModel with ChangeNotifier {
   // Геттеры/сеттеры
   bool get isInitialized => _isInitialized;
   bool get cameraAvailable => _cameraAvailable; // Геттер для доступности камеры
-  CameraController get controller => _controller;
+  CameraController get controller => _controller!;
   List<ScreenshotPreviewModel> get shots => _shots;
 
   // `cameraDescription` -  данные о камере
@@ -49,18 +49,30 @@ class StreamPageModel with ChangeNotifier {
   // Инициализация контроллера камеры
   Future<void> _initializeCamera() async {
     try {
+    // Если контроллер уже создан, освободим ресурсы перед повторной инициализацией
+      if (_controller != null) {
+        try {
+          if (_controller!.value.isRecordingVideo) {
+            await _controller!.stopVideoRecording();
+          }
+        } catch (_) {}
+        await _controller!.dispose();
+      }
+
       _controller = CameraController(
         cameraDescription,
         ResolutionPreset.medium,
         enableAudio: true,
       );
 
-      await _controller.initialize();
+      await _controller!.initialize();
       _isInitialized = true;
     } catch (e) {
       if (kDebugMode) {
         print('Error initializing camera: $e');
       }
+      _isInitialized = false;
+      _controller = null;
     }
   }
 
@@ -105,7 +117,7 @@ class StreamPageModel with ChangeNotifier {
   Future<XFile?> takePicture() async {
     if (!_isInitialized) return null;
     try {
-      return await _controller.takePicture();
+      return await _controller!.takePicture();
     } catch (e) {
       if (kDebugMode) {
         print('Error taking picture: $e');
@@ -127,7 +139,7 @@ class StreamPageModel with ChangeNotifier {
 
   Future<void> startRecording() async {
     if (_isRecording || !_isInitialized) return;
-    await _controller.startVideoRecording();
+    await _controller!.startVideoRecording();
     _isRecording = true;
     _isPaused = false;
     _transcripts.clear();
@@ -141,7 +153,7 @@ class StreamPageModel with ChangeNotifier {
 
   Future<void> pauseRecording() async {
     if (!_isRecording || _isPaused) return;
-    await _controller.pauseVideoRecording();
+    await _controller!.pauseVideoRecording();
     _isPaused = true;
     _sttSub?.cancel();
     _python.stopListening();
@@ -150,7 +162,7 @@ class StreamPageModel with ChangeNotifier {
 
   Future<void> resumeRecording() async {
     if (!_isRecording || !_isPaused) return;
-    await _controller.resumeVideoRecording();
+    await _controller!.resumeVideoRecording();
     _isPaused = false;
     _sttSub = _python.listen().listen((t) {
         if (t.trim().isEmpty) return;
@@ -162,7 +174,7 @@ class StreamPageModel with ChangeNotifier {
 
   Future<String?> stopRecording() async {
     if (!_isRecording) return null;
-    final file = await _controller.stopVideoRecording();
+    final file = await _controller!.stopVideoRecording();
     _isRecording = false;
     _isPaused = false;
     _sttSub?.cancel();
@@ -183,10 +195,13 @@ class StreamPageModel with ChangeNotifier {
     _sttSub?.cancel();
     _python.stopListening();
 
-    if (_controller.value.isRecordingVideo) {
-      _controller.stopVideoRecording();
+  if (_controller != null) {
+      if (_controller!.value.isRecordingVideo) {
+        _controller!.stopVideoRecording();
+      }
+      _controller!.dispose();
+      _controller = null; 
     }
-    _controller.dispose();
     _isInitialized = false;
     _isPaused = false;
     _cameraCheckTimer?.cancel();
