@@ -1,0 +1,13 @@
+/Users/anton/Codes/EndoscopeAi/rust/target/debug/deps/libraqote-4af9e4c4366c34c9.rmeta: /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/lib.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/blitter.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/dash.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/draw_target.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/geom.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/rasterizer.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/stroke.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/tests.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/path_builder.rs
+
+/Users/anton/Codes/EndoscopeAi/rust/target/debug/deps/raqote-4af9e4c4366c34c9.d: /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/lib.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/blitter.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/dash.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/draw_target.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/geom.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/rasterizer.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/stroke.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/tests.rs /Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/path_builder.rs
+
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/lib.rs:
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/blitter.rs:
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/dash.rs:
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/draw_target.rs:
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/geom.rs:
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/rasterizer.rs:
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/stroke.rs:
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/tests.rs:
+/Users/anton/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raqote-0.8.5/src/path_builder.rs:

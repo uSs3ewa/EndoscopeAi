@@ -25,6 +25,7 @@ dependencies:
   ffmpeg_kit_flutter: ^5.1.0 
   permission_handler: ^10.4.0 
   camera_platform_interface: ^2.10.0
+  flutter_rust_bridge: ^2.10.0
 
 dev_dependencies:
   flutter_test:
