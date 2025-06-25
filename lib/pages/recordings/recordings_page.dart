@@ -3,8 +3,8 @@
 // ====================================================
 import 'package:flutter/material.dart';
 import 'package:endoscopy_ai/shared/widget/buttons.dart';
-import 'recordings_page_view.dart';
-import 'recordings_page_model.dart';
+import 'recordings_view.dart';
+import 'recordings_model.dart';
 
 // Страница просмотра записей
 class RecordingsPage extends StatelessWidget {

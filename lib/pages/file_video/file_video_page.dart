@@ -3,8 +3,8 @@
 // ====================================================
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'file_video_page_model.dart';
-import 'file_video_page_view.dart';
+import 'file_video_model.dart';
+import 'file_video_view.dart';
 
 // Страница с воспроизведением видео с файла
 class FileVidePlayerPage extends StatefulWidget {

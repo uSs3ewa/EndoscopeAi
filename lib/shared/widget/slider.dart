@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:endoscopy_ai/pages/file_video/file_video_page_model.dart';
+import 'package:endoscopy_ai/pages/file_video/file_video_model.dart';
 import 'package:endoscopy_ai/shared/widget/markers.dart';
 import 'package:endoscopy_ai/shared/widget/markers_model.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
