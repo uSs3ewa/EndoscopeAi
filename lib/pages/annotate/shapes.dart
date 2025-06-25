@@ -1,9 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:xml/xml.dart';
 
 Offset _abs(Size s, Offset rel) => Offset(rel.dx * s.width, rel.dy * s.height);
-String _hx(Color c) => '#${c.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+String _hx(Color c) =>
+    '#${c.value.toRadixString(16).padLeft(8, '0').substring(2)}';
 
 abstract class Shape {
   Shape(this.color, this.strokeWidth);
@@ -31,8 +33,7 @@ class PenShape extends Shape {
       ..color = color
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
-    final path = Path()
-      ..moveTo(_abs(cs, pts.first).dx, _abs(cs, pts.first).dy);
+    final path = Path()..moveTo(_abs(cs, pts.first).dx, _abs(cs, pts.first).dy);
     for (final rp in pts.skip(1)) {
       final v = _abs(cs, rp);
       path.lineTo(v.dx, v.dy);
@@ -42,16 +43,14 @@ class PenShape extends Shape {
 
   @override
   XmlNode toSvg(Size cs) => XmlElement(XmlName('polyline'), [
-        XmlAttribute(
-            XmlName('points'),
-            pts
-                .map((rp) => _abs(cs, rp))
-                .map((v) => '${v.dx},${v.dy}')
-                .join(' ')),
-        XmlAttribute(XmlName('fill'), 'none'),
-        XmlAttribute(XmlName('stroke'), _hx(color)),
-        XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
-      ]);
+    XmlAttribute(
+      XmlName('points'),
+      pts.map((rp) => _abs(cs, rp)).map((v) => '${v.dx},${v.dy}').join(' '),
+    ),
+    XmlAttribute(XmlName('fill'), 'none'),
+    XmlAttribute(XmlName('stroke'), _hx(color)),
+    XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
+  ]);
 
   @override
   bool hitTest(Offset p, Size cs) =>
@@ -78,7 +77,8 @@ class PenShape extends Shape {
 // Rect
 class RectShape extends Shape {
   Offset p1, p2; // relative
-  RectShape(this.p1, this.p2, Color col, double strokeWidth) : super(col, strokeWidth);
+  RectShape(this.p1, this.p2, Color col, double strokeWidth)
+    : super(col, strokeWidth);
 
   Rect _rect(Size cs) => Rect.fromPoints(_abs(cs, p1), _abs(cs, p2));
 
@@ -127,10 +127,11 @@ class RectShape extends Shape {
       o.strokeWidth == strokeWidth;
 }
 
-// Circle 
-class CircleShape extends Shape {
+// Circle
+class EllipseShape extends Shape {
   Offset a, b; // opposite corners (rel)
-  CircleShape(this.a, this.b, Color col, double strokeWidth) : super(col, strokeWidth);
+  EllipseShape(this.a, this.b, Color col, double strokeWidth)
+    : super(col, strokeWidth);
 
   @override
   void paint(Canvas c, Paint p, Size cs) {
@@ -139,17 +140,22 @@ class CircleShape extends Shape {
       ..color = color.withOpacity(0.6)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
+
     final rect = Rect.fromPoints(_abs(cs, a), _abs(cs, b));
-    c.drawCircle(rect.center, rect.shortestSide / 2, p);
+
+    c.drawOval(rect, p);
+
+    //     c.drawCircle(rect.center, rect.shortestSide / 2, p);
   }
 
   @override
   XmlNode toSvg(Size cs) {
     final rect = Rect.fromPoints(_abs(cs, a), _abs(cs, b));
-    return XmlElement(XmlName('circle'), [
+    return XmlElement(XmlName('ellipse'), [
       XmlAttribute(XmlName('cx'), rect.center.dx.toStringAsFixed(1)),
       XmlAttribute(XmlName('cy'), rect.center.dy.toStringAsFixed(1)),
-      XmlAttribute(XmlName('r'), (rect.shortestSide / 2).toStringAsFixed(1)),
+      XmlAttribute(XmlName('rx'), (rect.width / 2).toStringAsFixed(1)),
+      XmlAttribute(XmlName('ry'), (rect.height / 2).toStringAsFixed(1)),
       XmlAttribute(XmlName('fill'), 'none'),
       XmlAttribute(XmlName('stroke'), _hx(color)),
       XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
@@ -169,11 +175,11 @@ class CircleShape extends Shape {
   }
 
   @override
-  Shape clone() => CircleShape(a, b, color, strokeWidth);
+  Shape clone() => EllipseShape(a, b, color, strokeWidth);
 
   @override
   bool compareTo(Shape o) =>
-      o is CircleShape &&
+      o is EllipseShape &&
       o.a == a &&
       o.b == b &&
       o.color == color &&
