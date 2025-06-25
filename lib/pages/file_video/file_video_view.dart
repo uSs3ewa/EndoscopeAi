@@ -2,16 +2,13 @@
 //  Страница для вопроизведения зяписанного видео
 //  Логика, содержащая логику, связанную с UI
 // ====================================================
-import 'package:fvp/fvp.dart' as fvp;
-import 'package:endoscopy_ai/shared/utility/strings.dart';
-import 'package:endoscopy_ai/shared/widget/play_pause_button.dart';
-import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:endoscopy_ai/pages/file_video/file_video_model.dart';
-import 'package:endoscopy_ai/shared/widget/spacing.dart';
-import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:endoscopy_ai/shared/widget/custom_slider.dart';
+import 'package:endoscopy_ai/shared/widget/play_pause_button.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_feed.dart';
+import 'package:endoscopy_ai/shared/widget/spacing.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class FileVidePlayerPageStateView {

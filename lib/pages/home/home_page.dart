@@ -2,7 +2,6 @@
 //  Главное окно для выбора режима: запись, просмотр, импорт
 // ====================================================
 import 'package:flutter/material.dart';
-
 import 'package:endoscopy_ai/routes.dart';
 import 'package:endoscopy_ai/shared/file_choser.dart';
 import 'package:endoscopy_ai/shared/widget/buttons.dart';

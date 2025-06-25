@@ -1,15 +1,12 @@
 // ====================================================
 //  Главное окно приложения, на котором производится отрисовка
 // ====================================================
+import 'routes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 
-import 'pages/file_video/file_video_page.dart';
-import 'pages/home_page.dart';
-import 'pages/recordings/recordings_page.dart';
-import 'routes.dart';
-import 'pages/stream/stream_page.dart';
-import 'pages/annotate/annotate_page.dart';
+import 'pages/pages.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
