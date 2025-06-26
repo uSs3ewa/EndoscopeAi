@@ -2,6 +2,8 @@
 //  Страница для просмотра стриммингого видео
 //  Тут имплементировано взаимодействие с UI
 // ====================================================
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_feed.dart';
@@ -171,20 +173,27 @@ class StreamPageView extends StatelessWidget {
                   label: const Text('Завершить запись'),
                   backgroundColor: Colors.red,
                   onPressed: () async {
-                   final savePath = await FilePicker.platform.saveFile(
+                  final recordedPath = await model.stopRecording();
+                    if (recordedPath == null) return;
+                    final savePath = await FilePicker.platform.saveFile( 
                       dialogTitle: 'Сохранить видео',
-                      fileName:
-                          '${DateTime.now().millisecondsSinceEpoch}.mp4',
+                      // fileName: '${DateTime.now().millisecondsSinceEpoch}.mp4',
+                      fileName: p.basename(recordedPath),
                       type: FileType.custom,
                       allowedExtensions: ['mp4'],
                     );
-                    final path =
-                        await model.stopRecording(savePath: savePath); 
-                    if (context.mounted && path != null) {
+                    String finalPath = recordedPath;
+                    if (savePath != null) {
+                      final normalized = savePath.toLowerCase().endsWith('.mp4')
+                          ? savePath
+                          : '$savePath.mp4';
+                      await File(recordedPath).copy(normalized);
+                      finalPath = normalized;
+                    }
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Saved: \${p.basename(path)}'),
-                        ),
+                          content: Text('Сохранено в "$finalPath"'),                        ),
                       );
                     }
                   },
@@ -210,19 +219,27 @@ class StreamPageView extends StatelessWidget {
                   label: const Text('Завершить запись'),
                   backgroundColor: Colors.red,
                   onPressed: () async {
-                   final savePath = await FilePicker.platform.saveFile(
+                   final recordedPath = await model.stopRecording();
+                    if (recordedPath == null) return;
+                    final savePath = await FilePicker.platform.saveFile(
                       dialogTitle: 'Сохранить видео',
-                      fileName:
-                          '${DateTime.now().millisecondsSinceEpoch}.mp4',
+                      // fileName: '${DateTime.now().millisecondsSinceEpoch}.mp4',
+                      fileName: p.basename(recordedPath),
                       type: FileType.custom,
                       allowedExtensions: ['mp4'],
                     );
-                    final path =
-                        await model.stopRecording(savePath: savePath); 
-                    if (context.mounted && path != null) {
+                    String finalPath = recordedPath;
+                    if (savePath != null) {
+                      final normalized = savePath.toLowerCase().endsWith('.mp4')
+                          ? savePath
+                          : '$savePath.mp4';
+                      await File(recordedPath).copy(normalized);
+                      finalPath = normalized;
+                    }
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Saved: \${p.basename(path)}'),
+                          content: Text('Сохранено в "$finalPath"'),
                         ),
                       );
                     }
