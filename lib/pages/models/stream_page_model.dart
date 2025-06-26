@@ -31,6 +31,26 @@ class StreamPageModel with ChangeNotifier {
   bool _isPaused = false;
   late final Directory _recordingsDir;
 
+  Future<void> _runSystemFFmpeg(String listFile, String output) async {
+    final ffmpeg = Platform.environment['FFMPEG_PATH'] ?? 'ffmpeg';
+    await Process.run(
+      ffmpeg,
+      [
+        '-y',
+        '-f',
+        'concat',
+        '-safe',
+        '0',
+        '-i',
+        listFile,
+        '-c',
+        'copy',
+        output,
+      ],
+      runInShell: true,
+    );
+  }
+
   bool get recording => _isRecording;
   bool get paused => _isPaused;
   List<String> get transcripts => _transcripts;
@@ -159,6 +179,8 @@ class StreamPageModel with ChangeNotifier {
     if (Platform.isWindows) {
       final file = await _controller!.stopVideoRecording();
       _segments.add(file.path);
+      // Reinitialize camera so recording can continue on resume
+      await _initializeCamera();
     } else {
       await _controller!.pauseVideoRecording();
     }
@@ -184,19 +206,20 @@ class StreamPageModel with ChangeNotifier {
     notifyListeners();
   }
 
- Future<String?> stopRecording({String? savePath}) async {
+  Future<String?> stopRecording({String? savePath}) async {
     if (!_isRecording) return null;
-    if (!_isPaused) {
-      final file = await _controller!.stopVideoRecording();
-      _segments.add(file.path);
-    }
-    _isRecording = false;
-    _isPaused = false;
-    _sttSub?.cancel();
-    _python.stopListening();
-    final outFileName =
-        '${DateTime.now().millisecondsSinceEpoch}.mp4';
-    final recordingsOut = p.join(_recordingsDir.path, outFileName);
+    try {
+      if (!_isPaused) {
+        final file = await _controller!.stopVideoRecording();
+        _segments.add(file.path);
+      }
+      _isRecording = false;
+      _isPaused = false;
+      _sttSub?.cancel();
+      _python.stopListening();
+      final outFileName =
+          '${DateTime.now().millisecondsSinceEpoch}.mp4';
+      final recordingsOut = p.join(_recordingsDir.path, outFileName);
 
     if (_segments.length == 1) {
       await File(_segments.first).copy(recordingsOut);
@@ -208,54 +231,18 @@ class StreamPageModel with ChangeNotifier {
       await listFile.writeAsString(content);
      try {
         if (Platform.isWindows || Platform.isLinux) {
-          // ffmpeg_kit_flutter is not available on these platforms in this
-          // project. Use the system ffmpeg executable instead. `Process.run`
-          // with `runInShell: true` ensures the command is resolved via the
-          // system PATH on Windows.
-          final ffmpeg = Platform.environment['FFMPEG_PATH'] ?? 'ffmpeg';
-          await Process.run(
-            ffmpeg,
-            [
-              '-y',
-              '-f',
-              'concat',
-              '-safe',
-              '0',
-              '-i',
-              listFile.path,
-              '-c',
-              'copy',
-              recordingsOut,
-            ],
-            runInShell: true,
-          );
+          await _runSystemFFmpeg(listFile.path, recordingsOut);
         } else {
-          // Use ffmpeg_kit_flutter on supported platforms.
-          await FFmpegKit.execute(
-              "-y -f concat -safe 0 -i ${listFile.path} -c copy $recordingsOut");
+          try {
+            await FFmpegKit.execute(
+                "-y -f concat -safe 0 -i \"${listFile.path}\" -c copy \"$recordingsOut\"");
+          } on MissingPluginException {
+            await _runSystemFFmpeg(listFile.path, recordingsOut);
+          }
         }
-      } on MissingPluginException {
-        // If the plugin is absent at runtime, fall back to the system ffmpeg
-        // regardless of platform.
-        final ffmpeg = Platform.environment['FFMPEG_PATH'] ?? 'ffmpeg';
-        await Process.run(
-          ffmpeg,
-          [
-            '-y',
-            '-f',
-            'concat',
-            '-safe',
-            '0',
-            '-i',
-            listFile.path,
-            '-c',
-            'copy',
-            recordingsOut,
-          ],
-          runInShell: true,
-        );
-      } 
-      await listFile.delete();
+      } finally {
+        await listFile.delete();
+      }
     }
 
     for (final s in _segments) {
@@ -272,6 +259,12 @@ class StreamPageModel with ChangeNotifier {
     }
     notifyListeners();
     return finalPath;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during stopRecording: $e');
+      }
+      return null;
+    }
   }
 
   // Освобождение ресурсов
@@ -281,15 +274,16 @@ class StreamPageModel with ChangeNotifier {
     _sttSub?.cancel();
     _python.stopListening();
 
-  if (_controller != null) {
+    if (_controller != null) {
       if (_controller!.value.isRecordingVideo) {
         _controller!.stopVideoRecording();
       }
       _controller!.dispose();
-      _controller = null; 
+      _controller = null;
     }
     _isInitialized = false;
     _isPaused = false;
     _cameraCheckTimer?.cancel();
+    super.dispose();
   }
 }
