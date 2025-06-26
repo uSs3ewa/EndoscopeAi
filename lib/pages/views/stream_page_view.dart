@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:endoscopy_ai/pages/models/stream_page_model.dart';
 import 'package:endoscopy_ai/shared/widget/buttons.dart';
 import 'package:path/path.dart' as p;
+import 'package:file_picker/file_picker.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class StreamPageView extends StatelessWidget {
@@ -170,7 +171,15 @@ class StreamPageView extends StatelessWidget {
                   label: const Text('Завершить запись'),
                   backgroundColor: Colors.red,
                   onPressed: () async {
-                    final path = await model.stopRecording();
+                   final savePath = await FilePicker.platform.saveFile(
+                      dialogTitle: 'Сохранить видео',
+                      fileName:
+                          '${DateTime.now().millisecondsSinceEpoch}.mp4',
+                      type: FileType.custom,
+                      allowedExtensions: ['mp4'],
+                    );
+                    final path =
+                        await model.stopRecording(savePath: savePath); 
                     if (context.mounted && path != null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -201,7 +210,15 @@ class StreamPageView extends StatelessWidget {
                   label: const Text('Завершить запись'),
                   backgroundColor: Colors.red,
                   onPressed: () async {
-                    final path = await model.stopRecording();
+                   final savePath = await FilePicker.platform.saveFile(
+                      dialogTitle: 'Сохранить видео',
+                      fileName:
+                          '${DateTime.now().millisecondsSinceEpoch}.mp4',
+                      type: FileType.custom,
+                      allowedExtensions: ['mp4'],
+                    );
+                    final path =
+                        await model.stopRecording(savePath: savePath); 
                     if (context.mounted && path != null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
