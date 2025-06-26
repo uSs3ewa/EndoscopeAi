@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:endoscopy_ai/pages/models/file_video_page_model.dart';
 import 'package:endoscopy_ai/shared/widget/spacing.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
+import 'package:path/path.dart' as p;
 import 'package:endoscopy_ai/shared/widget/custom_slider.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_feed.dart';
 
@@ -31,6 +32,30 @@ class FileVidePlayerPageStateView {
       appBar: AppBar(
         title: const Text('Видеоплеер'),
         leading: BackButton(onPressed: () => Navigator.pop(context)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: () async {
+              final path = await _model.saveRecording();
+              if (context.mounted && path != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Saved: \${p.basename(path)}')),
+                );
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () async {
+              final out = await _model.analyzeVideo();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Saved: \${p.basename(out)}')),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(5),

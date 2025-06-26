@@ -10,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:endoscopy_ai/shared/file_choser.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/backend/python_service.dart';
+import 'package:path/path.dart' as p;
 
 // Модель содержащая, данные и логику
 class FileVideoPlayerPageStateModel {
@@ -25,6 +27,8 @@ class FileVideoPlayerPageStateModel {
   Duration totalDuration = Duration.zero;
   final List<ScreenshotPreviewModel> _shots = []; // список миниатюр
   late Directory _shotsDir; // директория …/screenshots
+  late Directory _recordingsDir;
+  final PythonService _python = PythonService();
 
   bool get isPlaying => _isPlaying;
   bool get isValidFile => _isValidFile;
@@ -59,6 +63,10 @@ class FileVideoPlayerPageStateModel {
     _shotsDir = Directory('${base.path}/screenshots');
     if (!await _shotsDir.exists()) {
       await _shotsDir.create(recursive: true);
+    }
+    _recordingsDir = Directory('${base.path}/recordings');
+    if (!await _recordingsDir.exists()) {
+        await _recordingsDir.create(recursive: true);
     }
   }
 
@@ -129,6 +137,27 @@ class FileVideoPlayerPageStateModel {
 
       print('ОШИБКА СОЗАДНИЯ СКРИНШОТА: $error');
     }
+  }
+
+  Future<String> analyzeVideo() async {
+    final input = FilePicker.filePath!;
+    final out = p.join(p.dirname(input), 'annotated_${p.basename(input)}');
+    await _python.processVideo(input, out);
+    return out;
+  }
+
+
+  Future<String?> saveRecording() async {
+    if (!FilePicker.checkFile()) return null;
+    final src = FilePicker.filePath!;
+    var dest = p.join(_recordingsDir.path, p.basename(src));
+    if (await File(dest).exists()) {
+      final name =
+          '${DateTime.now().millisecondsSinceEpoch}_${p.basename(src)}';
+      dest = p.join(_recordingsDir.path, name);
+    }
+    await File(src).copy(dest);
+    return dest;
   }
 
   // смена состояния проигрывания

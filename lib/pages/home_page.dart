@@ -32,6 +32,8 @@ class _HomePageState extends State<HomePage> {
             _createVideoPlayerButton(context),
             createIndention(),
             _createRecordingsButton(context),
+            createIndention(),
+            _createAiToolsButton(context),
           ],
         ),
       ),
@@ -96,6 +98,15 @@ class _HomePageState extends State<HomePage> {
       context,
       'Открыть стриминговый плеер',
       Routes.streamVideoPlayer,
+      disable: _disableControls,
+    );
+  }
+
+  Widget _createAiToolsButton(BuildContext context) {
+    return createRedirectButton(
+      context,
+      'AI инструменты',
+      Routes.aiTools,
       disable: _disableControls,
     );
   }

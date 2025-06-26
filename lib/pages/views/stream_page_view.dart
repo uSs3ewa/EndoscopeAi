@@ -2,6 +2,8 @@
 //  Страница для просмотра стриммингого видео
 //  Тут имплементировано взаимодействие с UI
 // ====================================================
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_feed.dart';
@@ -9,6 +11,8 @@ import 'package:endoscopy_ai/shared/widget/spacing.dart';
 import 'package:provider/provider.dart';
 import 'package:endoscopy_ai/pages/models/stream_page_model.dart';
 import 'package:endoscopy_ai/shared/widget/buttons.dart';
+import 'package:path/path.dart' as p;
+import 'package:file_picker/file_picker.dart';
 
 //  Логика, содержащая логику, связанную с UI
 class StreamPageView extends StatelessWidget {
@@ -36,8 +40,8 @@ class StreamPageView extends StatelessWidget {
   }) : super(key: key);
 
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => StreamPageModel(cameraDescription: camera),
+    return ChangeNotifierProvider.value(
+      value: model,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Поток с камеры'),
@@ -90,7 +94,26 @@ class StreamPageView extends StatelessWidget {
                   ),
                 ),
                 createIndention(),
-                ScreenshotFeed(onFetchScreenshots: () => model.shots),
+                Expanded(
+                  child: Column(
+                    children: [
+                      ScreenshotFeed(onFetchScreenshots: () => model.shots),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListView(
+                              children: [
+                                for (final t in model.transcripts) Text(t),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             );
           },
@@ -100,20 +123,139 @@ class StreamPageView extends StatelessWidget {
         floatingActionButton: Builder(
           builder: (context) {
             final model = Provider.of<StreamPageModel>(context, listen: true);
-            return model.isInitialized
-                ? FloatingActionButton(
-                    onPressed: () async {
-                      final image = await model.takePicture();
-                      if (image != null) {
-                        onPictureTaken(image);
-                      }
-                    },
-                    child: const Icon(Icons.camera_alt),
-                  )
-                : const SizedBox.shrink(); // Возвращаем пустой виджет вместо null
+            if (!model.isInitialized) return const SizedBox.shrink();
+                final buttons = <Widget>[
+                    FloatingActionButton(
+                        heroTag: 'shot_btn',
+                        onPressed: () async {
+                            final image = await model.takePicture();
+                            if (image != null) {
+                                onPictureTaken(image);
+                            }
+                        },
+                        child: const Icon(Icons.camera_alt),
+                    ),
+
+                ];
+
+                void addSpace() => buttons.add(const SizedBox(height: 8));
+
+                if (!model.recording) {
+                    addSpace();
+                    buttons.add(
+                        FloatingActionButton.extended(
+                            heroTag: 'start_rec_btn',
+                            icon: const Icon(Icons.fiber_manual_record),
+                            label: const Text('Начать видеозапись'),
+                            backgroundColor: Colors.red,
+                            onPressed: () async {
+                    await model.startRecording();
+                  },
+                ),
+              );
+            } else if (model.paused) {
+              addSpace();
+              buttons.add(
+                FloatingActionButton.extended(
+                  heroTag: 'resume_rec_btn',
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Продолжить запись'),
+                  onPressed: () async {
+                    await model.resumeRecording();
+                  },
+                ),
+              );
+              addSpace();
+              buttons.add(
+                FloatingActionButton.extended(
+                  heroTag: 'finish_rec_btn',
+                  icon: const Icon(Icons.stop),
+                  label: const Text('Завершить запись'),
+                  backgroundColor: Colors.red,
+                  onPressed: () async {
+                  final recordedPath = await model.stopRecording();
+                    if (recordedPath == null) return;
+                    final savePath = await FilePicker.platform.saveFile( 
+                      dialogTitle: 'Сохранить видео',
+                      // fileName: '${DateTime.now().millisecondsSinceEpoch}.mp4',
+                      fileName: p.basename(recordedPath),
+                      type: FileType.custom,
+                      allowedExtensions: ['mp4'],
+                    );
+                    String finalPath = recordedPath;
+                    if (savePath != null) {
+                      final normalized = savePath.toLowerCase().endsWith('.mp4')
+                          ? savePath
+                          : '$savePath.mp4';
+                      await File(recordedPath).copy(normalized);
+                      finalPath = normalized;
+                    }
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Сохранено в "$finalPath"'),                        ),
+                      );
+                    }
+                  },
+                ),
+              );
+            } else {
+              addSpace();
+              buttons.add(
+                FloatingActionButton.extended(
+                  heroTag: 'pause_rec_btn',
+                  icon: const Icon(Icons.pause),
+                  label: const Text('Остановить запись'),
+                  onPressed: () async {
+                    await model.pauseRecording();
+                  },
+                ),
+              );
+              addSpace();
+              buttons.add(
+                FloatingActionButton.extended(
+                  heroTag: 'finish_rec_btn',
+                  icon: const Icon(Icons.stop),
+                  label: const Text('Завершить запись'),
+                  backgroundColor: Colors.red,
+                  onPressed: () async {
+                   final recordedPath = await model.stopRecording();
+                    if (recordedPath == null) return;
+                    final savePath = await FilePicker.platform.saveFile(
+                      dialogTitle: 'Сохранить видео',
+                      // fileName: '${DateTime.now().millisecondsSinceEpoch}.mp4',
+                      fileName: p.basename(recordedPath),
+                      type: FileType.custom,
+                      allowedExtensions: ['mp4'],
+                    );
+                    String finalPath = recordedPath;
+                    if (savePath != null) {
+                      final normalized = savePath.toLowerCase().endsWith('.mp4')
+                          ? savePath
+                          : '$savePath.mp4';
+                      await File(recordedPath).copy(normalized);
+                      finalPath = normalized;
+                    }
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Сохранено в "$finalPath"'),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              );
+            }
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: buttons,
+            );
           },
         ),
       ),
     );
   }
 }
+                            
