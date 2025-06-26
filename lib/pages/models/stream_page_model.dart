@@ -173,39 +173,7 @@ class StreamPageModel with ChangeNotifier {
     });
     notifyListeners();
   }
-
-  Future<void> pauseRecording() async {
-    if (!_isRecording || _isPaused) return;
-    if (Platform.isWindows) {
-      final file = await _controller!.stopVideoRecording();
-      _segments.add(file.path);
-      // Reinitialize camera so recording can continue on resume
-      await _initializeCamera();
-    } else {
-      await _controller!.pauseVideoRecording();
-    }
-    _isPaused = true;
-    _sttSub?.cancel();
-    _python.stopListening();
-    notifyListeners();
-  }
-
-  Future<void> resumeRecording() async {
-    if (!_isRecording || !_isPaused) return;
-    if (Platform.isWindows) {
-      await _controller!.startVideoRecording();
-    } else {
-      await _controller!.resumeVideoRecording();
-    }
-    _isPaused = false;
-    _sttSub = _python.listen().listen((t) {
-        if (t.trim().isEmpty) return;
-        _transcripts.add(t.trim());
-        notifyListeners();
-    });
-    notifyListeners();
-  }
-
+ 
   Future<String?> stopRecording({String? savePath}) async {
     if (!_isRecording) return null;
     try {
