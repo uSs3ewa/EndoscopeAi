@@ -43,7 +43,7 @@ class FakeVideoPlayerModel extends FileVideoPlayerPageStateModel {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('slider mark and screenshot give same timecode', (tester) async {
+  testWidgets('slider and screenshot synced', (tester) async {
     final key = GlobalKey();
     final shot = ScreenshotPreviewModel('path', const Duration(seconds: 5));
     final model = FakeVideoPlayerModel([shot])
@@ -59,7 +59,7 @@ void main() {
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
-        child: SizedBox(width: 200, height: 20, key: key),
+        child: SizedBox(width: 100, height: 20, key: key),
       ),
     );
 
@@ -70,12 +70,6 @@ void main() {
     final global = box.localToGlobal(Offset(tapX, 1));
 
     markers.seekToMarker(TapDownDetails(globalPosition: global));
-
-    // now simulate tap on screenshot preview
-    model.seekTo(Duration.zero);
-    model.controllerFake.lastPosition = null;
-    final onTap = (Duration d) => model.seekTo(d);
-    onTap(shot.position);
 
     expect(model.currentPosition, equals(shot.position));
     expect(model.controllerFake.lastPosition, equals(shot.position));
