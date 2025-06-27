@@ -153,6 +153,8 @@ class StreamPageView extends StatelessWidget {
                   },
                 ),
               );
+            } 
+            else {
             } else if (model.paused) {
               addSpace();
               buttons.add(
@@ -165,16 +167,6 @@ class StreamPageView extends StatelessWidget {
                   },
                 ),
               );
-              addSpace();
-              buttons.add(
-                FloatingActionButton.extended(
-                  heroTag: 'finish_rec_btn',
-                  icon: const Icon(Icons.stop),
-                  label: const Text('Завершить запись'),
-                  backgroundColor: Colors.red,
-                  onPressed: () async {
-                  final recordedPath = await model.stopRecording();
-                    if (recordedPath == null) return;
                     final savePath = await FilePicker.platform.saveFile( 
                       dialogTitle: 'Сохранить видео',
                       // fileName: '${DateTime.now().millisecondsSinceEpoch}.mp4',

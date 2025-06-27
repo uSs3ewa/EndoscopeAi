@@ -13,6 +13,7 @@ import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:endoscopy_ai/backend/python_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+import 'package:flutter/services.dart';
 
 class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
@@ -29,6 +30,26 @@ class StreamPageModel with ChangeNotifier {
   bool _isRecording = false;
   bool _isPaused = false;
   late final Directory _recordingsDir;
+
+  Future<void> _runSystemFFmpeg(String listFile, String output) async {
+    final ffmpeg = Platform.environment['FFMPEG_PATH'] ?? 'ffmpeg';
+    await Process.run(
+      ffmpeg,
+      [
+        '-y',
+        '-f',
+        'concat',
+        '-safe',
+        '0',
+        '-i',
+        listFile,
+        '-c',
+        'copy',
+        output,
+      ],
+      runInShell: true,
+    );
+  }
 
   bool get recording => _isRecording;
   bool get paused => _isPaused;
@@ -152,36 +173,21 @@ class StreamPageModel with ChangeNotifier {
     });
     notifyListeners();
   }
-
-  Future<void> pauseRecording() async {
-    if (!_isRecording || _isPaused) return;
-    if (Platform.isWindows) {
-      final file = await _controller!.stopVideoRecording();
-      _segments.add(file.path);
-    } else {
-      await _controller!.pauseVideoRecording();
-    }
-    _isPaused = true;
-    _sttSub?.cancel();
-    _python.stopListening();
-    notifyListeners();
-  }
-
-  Future<void> resumeRecording() async {
-    if (!_isRecording || !_isPaused) return;
-    if (Platform.isWindows) {
-      await _controller!.startVideoRecording();
-    } else {
-      await _controller!.resumeVideoRecording();
-    }
-    _isPaused = false;
-    _sttSub = _python.listen().listen((t) {
-        if (t.trim().isEmpty) return;
-        _transcripts.add(t.trim());
-        notifyListeners();
-    });
-    notifyListeners();
-  }
+ 
+  Future<String?> stopRecording({String? savePath}) async {
+    if (!_isRecording) return null;
+    try {
+      if (!_isPaused) {
+        final file = await _controller!.stopVideoRecording();
+        _segments.add(file.path);
+      }
+      _isRecording = false;
+      _isPaused = false;
+      _sttSub?.cancel();
+      _python.stopListening();
+      final outFileName =
+          '${DateTime.now().millisecondsSinceEpoch}.mp4';
+      final recordingsOut = p.join(_recordingsDir.path, outFileName);
 
  Future<String?> stopRecording({String? savePath}) async {
     if (!_isRecording) return null;
@@ -205,9 +211,26 @@ class StreamPageModel with ChangeNotifier {
           .map((s) => "file '${s.replaceAll('\\', '/')}'")
           .join('\n');
       await listFile.writeAsString(content);
+      
+     try {
+        if (Platform.isWindows || Platform.isLinux) {
+          await _runSystemFFmpeg(listFile.path, recordingsOut);
+        } else {
+          try {
+            await FFmpegKit.execute(
+                "-y -f concat -safe 0 -i \"${listFile.path}\" -c copy \"$recordingsOut\"");
+          } on MissingPluginException {
+            await _runSystemFFmpeg(listFile.path, recordingsOut);
+          }
+        }
+      } finally {
+        await listFile.delete();
+      }
+
       await FFmpegKit.execute(
           "-y -f concat -safe 0 -i ${listFile.path} -c copy $recordingsOut");
       await listFile.delete();
+
     }
 
     for (final s in _segments) {
@@ -224,6 +247,13 @@ class StreamPageModel with ChangeNotifier {
     }
     notifyListeners();
     return finalPath;
+
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during stopRecording: $e');
+      }
+      return null;
+    }
   }
 
   // Освобождение ресурсов
@@ -238,10 +268,11 @@ class StreamPageModel with ChangeNotifier {
         _controller!.stopVideoRecording();
       }
       _controller!.dispose();
-      _controller = null; 
+      _controller = null;
     }
     _isInitialized = false;
     _isPaused = false;
     _cameraCheckTimer?.cancel();
+    super.dispose();
   }
 }
