@@ -189,6 +189,20 @@ class StreamPageModel with ChangeNotifier {
           '${DateTime.now().millisecondsSinceEpoch}.mp4';
       final recordingsOut = p.join(_recordingsDir.path, outFileName);
 
+ Future<String?> stopRecording({String? savePath}) async {
+    if (!_isRecording) return null;
+    if (!_isPaused) {
+      final file = await _controller!.stopVideoRecording();
+      _segments.add(file.path);
+    }
+    _isRecording = false;
+    _isPaused = false;
+    _sttSub?.cancel();
+    _python.stopListening();
+    final outFileName =
+        '${DateTime.now().millisecondsSinceEpoch}.mp4';
+    final recordingsOut = p.join(_recordingsDir.path, outFileName);
+
     if (_segments.length == 1) {
       await File(_segments.first).copy(recordingsOut);
     } else {
@@ -197,6 +211,7 @@ class StreamPageModel with ChangeNotifier {
           .map((s) => "file '${s.replaceAll('\\', '/')}'")
           .join('\n');
       await listFile.writeAsString(content);
+      
      try {
         if (Platform.isWindows || Platform.isLinux) {
           await _runSystemFFmpeg(listFile.path, recordingsOut);
@@ -211,6 +226,11 @@ class StreamPageModel with ChangeNotifier {
       } finally {
         await listFile.delete();
       }
+
+      await FFmpegKit.execute(
+          "-y -f concat -safe 0 -i ${listFile.path} -c copy $recordingsOut");
+      await listFile.delete();
+
     }
 
     for (final s in _segments) {
@@ -227,6 +247,7 @@ class StreamPageModel with ChangeNotifier {
     }
     notifyListeners();
     return finalPath;
+
     } catch (e) {
       if (kDebugMode) {
         print('Error during stopRecording: $e');
@@ -242,7 +263,7 @@ class StreamPageModel with ChangeNotifier {
     _sttSub?.cancel();
     _python.stopListening();
 
-    if (_controller != null) {
+  if (_controller != null) {
       if (_controller!.value.isRecordingVideo) {
         _controller!.stopVideoRecording();
       }
