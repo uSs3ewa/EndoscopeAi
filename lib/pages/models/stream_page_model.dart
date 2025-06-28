@@ -8,9 +8,11 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:endoscopy_ai/backend/python_service.dart';
+import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 import 'package:path/path.dart' as p;
 
 class StreamPageModel with ChangeNotifier {
@@ -45,33 +47,48 @@ class StreamPageModel with ChangeNotifier {
     _startCameraCheckTimer();
   }
 
-  // Инициализация контроллера камеры
+  // Инициализация контроллера камеры с Windows-специфичными фиксами
   Future<void> _initializeCamera() async {
     try {
-    // Если контроллер уже создан, освободим ресурсы перед повторной инициализацией
-      if (_controller != null) {
-        try {
-          if (_controller!.value.isRecordingVideo) {
-            await _controller!.stopVideoRecording();
-          }
-        } catch (_) {}
-        await _controller!.dispose();
-      }
-
-      _controller = CameraController(
+      // Полная очистка предыдущего контроллера
+      await WindowsCameraHelper.disposeCamera(_controller);
+      _controller = null;
+      
+      // Используем Windows-специфичный хелпер для инициализации
+      _controller = await WindowsCameraHelper.initializeCamera(
         cameraDescription,
-        ResolutionPreset.medium,
+        resolution: ResolutionPreset.medium,
         enableAudio: true,
       );
-
-      await _controller!.initialize();
+      
       _isInitialized = true;
+      _cameraAvailable = true;
+      
+      // Уведомляем слушателей на главном потоке
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+      
     } catch (e) {
+      final errorDescription = WindowsCameraHelper.getWindowsCameraErrorDescription(e);
+      
       if (kDebugMode) {
-        print('Error initializing camera: $e');
+        print('Error initializing camera: $errorDescription');
+        print('Original error: $e');
       }
+      
       _isInitialized = false;
+      _cameraAvailable = false;
+      await WindowsCameraHelper.disposeCamera(_controller);
       _controller = null;
+      
+      // Уведомляем слушателей на главном потоке
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+      
+      // Переобертываем ошибку с понятным описанием
+      throw Exception(errorDescription);
     }
   }
 
@@ -180,22 +197,27 @@ class StreamPageModel with ChangeNotifier {
 
 
   // Освобождение ресурсов
+  @override
   void dispose() {
     print('StreamPageModel disposed');
 
     _sttSub?.cancel();
     _python.stopListening();
+    _cameraCheckTimer?.cancel();
 
-  if (_controller != null) {
-      if (_controller!.value.isRecordingVideo) {
-        _controller!.stopVideoRecording();
-      }
-      _controller!.dispose();
-      _controller = null;
-    }
+    // Асинхронное освобождение ресурсов камеры
+    _disposeCamera();
+    
     _isInitialized = false;
     _isPaused = false;
-    _cameraCheckTimer?.cancel();
+    _isRecording = false;
+    
     super.dispose();
+  }
+  
+  // Безопасное освобождение ресурсов камеры
+  Future<void> _disposeCamera() async {
+    await WindowsCameraHelper.disposeCamera(_controller);
+    _controller = null;
   }
 }

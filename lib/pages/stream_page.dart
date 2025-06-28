@@ -45,12 +45,26 @@ class _StreamPageState extends State<StreamPage> {
   Future<void> _initializeModel() async {
     try {
       await _model.cameraInitialized;
-      setState(() {
-        _isModelInitialized = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isModelInitialized = true;
+        });
+      }
     } catch (e) {
       debugPrint('Model initialization error: $e');
-      // Можно добавить обработку ошибки
+      if (mounted) {
+        setState(() {
+          _isModelInitialized = false;
+        });
+        // Показать ошибку пользователю
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка инициализации камеры: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
