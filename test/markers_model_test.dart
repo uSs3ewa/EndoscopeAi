@@ -4,7 +4,7 @@ import 'package:endoscopy_ai/shared/widget/markers_model.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
 // Reuse the fake video model from the widget test file
-import 'timecode_test.dart' show FakeVideoPlayerModel;
+import 'timecode_sync_test.dart' show FakeVideoPlayerModel;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +35,8 @@ void main() {
     final box = key.currentContext!.findRenderObject() as RenderBox;
     final sliderWidth = box.size.width;
     final totalMs = model.totalDuration.inMilliseconds.toDouble();
-    final tapX = (Duration(seconds: 7).inMilliseconds / totalMs) * sliderWidth;
+    // Tap very close to the 8-second marker (within threshold)
+    final tapX = (Duration(seconds: 8, milliseconds: 50).inMilliseconds / totalMs) * sliderWidth;
     final global = box.localToGlobal(Offset(tapX, 1));
 
     markers.seekToMarker(TapDownDetails(globalPosition: global));

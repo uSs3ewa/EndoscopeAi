@@ -37,6 +37,16 @@ class FakeVideoPlayerModel extends FileVideoPlayerPageStateModel {
   List<ScreenshotPreviewModel> get shots => shotsList;
 
   @override
+  void seekTo(Duration pos) {
+    // Override to use our fake controller directly and avoid _controller access
+    controllerFake.seekTo(pos);
+    currentPosition = pos;
+    if (isPlaying) {
+      togglePlayPause(); // if was playing - pause it
+    }
+  }
+
+  @override
   Future<void> makeScreenshot() async {}
 }
 

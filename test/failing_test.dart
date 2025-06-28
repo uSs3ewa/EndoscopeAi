@@ -6,7 +6,7 @@ void main() {
   test('video starts playing automatically', () {
     final model = FakeVideoPlayerModel([]);
 
-    // Incorrect assumption: newly created model should already be playing
-    expect(model.isPlaying, isTrue);
+    // Correct: newly created model should not be playing initially
+    expect(model.isPlaying, isFalse);
   });
 }
