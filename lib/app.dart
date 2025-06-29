@@ -5,6 +5,7 @@ import 'routes.dart';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 
 import 'pages/pages.dart';
 
@@ -24,6 +25,13 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
     _initializeCameras();
+  }
+
+  @override
+  void dispose() {
+    // Dispose all cameras when app is shutting down
+    WindowsCameraHelper.disposeAllCameras();
+    super.dispose();
   }
 
   // Получение списка доступных камер
