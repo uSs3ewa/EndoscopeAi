@@ -146,7 +146,6 @@ class FileVideoPlayerPageStateModel {
     return out;
   }
 
-
   Future<String?> saveRecording() async {
     if (!FilePicker.checkFile()) return null;
     final src = FilePicker.filePath!;
@@ -159,7 +158,7 @@ class FileVideoPlayerPageStateModel {
     await File(src).copy(dest);
     return dest;
   }
-
+  
   // смена состояния проигрывания
   void togglePlayPause() {
     setState(() {

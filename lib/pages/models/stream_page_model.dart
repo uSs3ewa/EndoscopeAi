@@ -15,6 +15,7 @@ import 'package:endoscopy_ai/backend/python_service.dart';
 import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 import 'package:path/path.dart' as p;
 
+
 class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
   CameraController? _controller;
@@ -27,12 +28,9 @@ class StreamPageModel with ChangeNotifier {
   StreamSubscription<String>? _sttSub;
   final List<String> _transcripts = [];
   bool _isRecording = false;
-  bool _isPaused = false;
-  late final Directory _recordingsDir;
-
   bool get recording => _isRecording;
-  bool get paused => _isPaused;
-  List<String> get transcripts => _transcripts;
+ 
+  late final Directory _recordingsDir;
 
   // Геттеры/сеттеры
   bool get isInitialized => _isInitialized;
@@ -157,7 +155,6 @@ class StreamPageModel with ChangeNotifier {
     if (_isRecording || !_isInitialized) return;
     await _controller!.startVideoRecording();
     _isRecording = true;
-    _isPaused = false;
     _transcripts.clear();
     _sttSub = _python.listen().listen((t) {
       if (t.trim().isEmpty) return;
@@ -195,8 +192,7 @@ class StreamPageModel with ChangeNotifier {
       }
     }
 
-
-  // Освобождение ресурсов
+ // Освобождение ресурсов
   @override
   void dispose() {
     print('StreamPageModel disposed');

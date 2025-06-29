@@ -281,7 +281,7 @@ class _AnnotatePageState extends State<AnnotatePage> {
       case Tool.rect:
         _draft = RectShape(rel, rel, _color, _strokeWidth);
       case Tool.circle:
-        _draft = CircleShape(rel, rel, _color, _strokeWidth);
+        _draft = EllipseShape(rel, rel, _color, _strokeWidth);
       default:
         break;
     }
@@ -301,8 +301,8 @@ class _AnnotatePageState extends State<AnnotatePage> {
       (_draft as PenShape).pts.add(rel);
     } else if (_draft is RectShape) {
       (_draft as RectShape).p2 = rel;
-    } else if (_draft is CircleShape) {
-      (_draft as CircleShape).b = rel;
+    } else if (_draft is EllipseShape) {
+      (_draft as EllipseShape).b = rel;
     }
   });
 

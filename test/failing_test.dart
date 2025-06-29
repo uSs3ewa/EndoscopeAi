@@ -5,8 +5,6 @@ import 'timecode_sync_test.dart' show FakeVideoPlayerModel;
 void main() {
   test('video starts playing automatically', () {
     final model = FakeVideoPlayerModel([]);
-
-    // Correct: newly created model should not be playing initially
     expect(model.isPlaying, isFalse);
   });
 }

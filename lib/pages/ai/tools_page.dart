@@ -36,7 +36,6 @@ class _AiToolsPageState extends State<AiToolsPage> {
       _sttResult = text;
     });
   }
- 
   Future<void> _pickVideoAndDetect() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result == null) return;
