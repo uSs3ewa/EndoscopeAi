@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'recordings_model.dart';
+import 'package:path/path.dart' as p;
 
 class RecordingsPageView extends StatefulWidget {
   final RecordingsPageModel model;
@@ -83,6 +84,10 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
   }
 
   Widget _buildRecordingItem(BuildContext context, Recording recording) {
+    final displayName =
+        (recording.fileName != null && recording.fileName.isNotEmpty)
+        ? recording.fileName
+        : 'Запись ${recording.timestamp.toString()}';
     if (_editMode) {
       return CheckboxListTile(
         value: _selectedPaths.contains(recording.filePath),
@@ -95,14 +100,14 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
             }
           });
         },
-        title: Text('Запись ${recording.timestamp.toString()}'),
+        title: Text(displayName),
         subtitle: Text(recording.filePath),
         secondary: Icon(Icons.video_library, size: 40),
       );
     }
     return ListTile(
       leading: Icon(Icons.video_library, size: 40),
-      title: Text('Запись ${recording.timestamp.toString()}'),
+      title: Text(displayName),
       subtitle: Text(recording.filePath),
       trailing: Icon(Icons.play_arrow),
       onTap: () => _playVideo(context, recording.filePath),
@@ -131,18 +136,20 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton.icon(
-            icon: Icon(Icons.video_library),
-            label: Text('Импортировать видео'),
-            onPressed: () => _importVideo(context),
+            icon: Icon(Icons.videocam),
+            label: Text('Сделать запись'),
+            onPressed: () {
+              Navigator.pushNamed(context, '/streamVideoPlayer');
+            },
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
           ),
           SizedBox(width: 20),
           ElevatedButton.icon(
-            icon: Icon(Icons.add),
-            label: Text('Новая запись'),
-            onPressed: () => _showRecordingOptions(context),
+            icon: Icon(Icons.video_library),
+            label: Text('Импортировать видео'),
+            onPressed: () => _importVideo(context),
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
@@ -210,8 +217,13 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
 
       if (result != null && result.files.isNotEmpty) {
         final filePath = result.files.single.path!;
+        final fileName = p.basename(filePath);
         await widget.model.addRecording(
-          Recording(filePath: filePath, timestamp: DateTime.now()),
+          Recording(
+            filePath: filePath,
+            timestamp: DateTime.now(),
+            fileName: fileName,
+          ),
         );
         widget.refresh();
       }

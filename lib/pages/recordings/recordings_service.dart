@@ -9,7 +9,11 @@ class RecordingService {
     final recordingsJson = prefs.getStringList(_key) ?? [];
     return recordingsJson.map((json) {
       final parts = json.split('|');
-      return Recording(filePath: parts[0], timestamp: DateTime.parse(parts[1]));
+      return Recording(
+        filePath: parts[0],
+        timestamp: DateTime.parse(parts[1]),
+        fileName: parts.length > 2 ? parts[2] : '',
+      );
     }).toList();
   }
 

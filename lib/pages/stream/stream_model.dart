@@ -270,7 +270,11 @@ class StreamPageModel with ChangeNotifier {
       }
       // Автоматически добавляем запись в список записей
       await RecordingsPageModel().addRecording(
-        Recording(filePath: finalPath, timestamp: DateTime.now()),
+        Recording(
+          filePath: finalPath,
+          timestamp: DateTime.now(),
+          fileName: p.basename(finalPath),
+        ),
       );
       return finalPath;
     } catch (e) {

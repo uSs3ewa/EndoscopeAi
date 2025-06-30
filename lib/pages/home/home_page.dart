@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                 _disableControls = false;
               });
             },
-      child: const Text('Открыть видеоплеер'),
+      child: const Text('Открыть видеозапись'),
     );
   }
 
@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
   Widget _createRecordingsButton(context) {
     return createRedirectButton(
       context,
-      'Открыть видеозаписи',
+      'Открыть видеоплеер',
       Routes.recordings,
       disable: _disableControls,
     );
