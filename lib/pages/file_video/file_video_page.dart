@@ -4,6 +4,9 @@
 import 'package:flutter/material.dart';
 import 'file_video_model.dart';
 import 'file_video_view.dart';
+import '../recordings/recordings_model.dart';
+import 'package:endoscopy_ai/shared/file_choser.dart';
+import 'package:path/path.dart' as p;
 
 // Страница с воспроизведением видео с файла
 class FileVidePlayerPage extends StatefulWidget {
@@ -27,6 +30,19 @@ class _FileVidePlayerPageState extends State<FileVidePlayerPage> {
     super.initState();
 
     _model.initState();
+
+    // Добавляем запись в список записей, если файл валиден
+    if (FilePicker.checkFile() && FilePicker.filePath != null) {
+      final filePath = FilePicker.filePath!;
+      final fileName = p.basename(filePath);
+      RecordingsPageModel().addRecording(
+        Recording(
+          filePath: filePath,
+          timestamp: DateTime.now(),
+          fileName: fileName,
+        ),
+      );
+    }
 
     // Обновляем позицию каждые 100 мс
     _model.controller.addListener(_updateProgress);
