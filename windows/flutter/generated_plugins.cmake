@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   camera_windows
+  file_selector_windows
   fvp
   permission_handler_windows
   video_player_win
