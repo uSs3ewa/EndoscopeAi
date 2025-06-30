@@ -15,6 +15,9 @@ class RecordingsPageView extends StatefulWidget {
 }
 
 class _RecordingsPageViewState extends State<RecordingsPageView> {
+  bool _editMode = false;
+  Set<String> _selectedPaths = {};
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Recording>>(
@@ -41,6 +44,37 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
                           _buildRecordingItem(context, recordings[index]),
                     ),
             ),
+            if (_editMode && _selectedPaths.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.delete),
+                      label: Text('Удалить выбранные'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
+                      onPressed: () async {
+                        final toDelete = recordings
+                            .where((r) => _selectedPaths.contains(r.filePath))
+                            .toList();
+                        await widget.model.deleteRecordings(toDelete);
+                        setState(() {
+                          _selectedPaths.clear();
+                          _editMode = false;
+                        });
+                        widget.refresh();
+                      },
+                    ),
+                  ],
+                ),
+              ),
             _buildActionButtons(context),
           ],
         );
@@ -49,12 +83,35 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
   }
 
   Widget _buildRecordingItem(BuildContext context, Recording recording) {
+    if (_editMode) {
+      return CheckboxListTile(
+        value: _selectedPaths.contains(recording.filePath),
+        onChanged: (selected) {
+          setState(() {
+            if (selected == true) {
+              _selectedPaths.add(recording.filePath);
+            } else {
+              _selectedPaths.remove(recording.filePath);
+            }
+          });
+        },
+        title: Text('Запись ${recording.timestamp.toString()}'),
+        subtitle: Text(recording.filePath),
+        secondary: Icon(Icons.video_library, size: 40),
+      );
+    }
     return ListTile(
       leading: Icon(Icons.video_library, size: 40),
       title: Text('Запись ${recording.timestamp.toString()}'),
       subtitle: Text(recording.filePath),
       trailing: Icon(Icons.play_arrow),
       onTap: () => _playVideo(context, recording.filePath),
+      onLongPress: () {
+        setState(() {
+          _editMode = true;
+          _selectedPaths.add(recording.filePath);
+        });
+      },
     );
   }
 
@@ -87,6 +144,25 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
             label: Text('Новая запись'),
             onPressed: () => _showRecordingOptions(context),
             style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+          ),
+          SizedBox(width: 20),
+          ElevatedButton.icon(
+            icon: Icon(_editMode ? Icons.close : Icons.edit),
+            label: Text(_editMode ? 'Отмена' : 'Редактировать'),
+            onPressed: () {
+              setState(() {
+                if (_editMode) {
+                  _editMode = false;
+                  _selectedPaths.clear();
+                } else {
+                  _editMode = true;
+                }
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _editMode ? Colors.grey : Colors.blue,
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
           ),

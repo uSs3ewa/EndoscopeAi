@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 import 'package:path/path.dart' as p;
+import 'package:endoscopy_ai/pages/recordings/recordings_model.dart';
 
 class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
@@ -267,6 +268,10 @@ class StreamPageModel with ChangeNotifier {
       if (!_isDisposed) {
         notifyListeners();
       }
+      // Автоматически добавляем запись в список записей
+      await RecordingsPageModel().addRecording(
+        Recording(filePath: finalPath, timestamp: DateTime.now()),
+      );
       return finalPath;
     } catch (e) {
       if (kDebugMode) {
