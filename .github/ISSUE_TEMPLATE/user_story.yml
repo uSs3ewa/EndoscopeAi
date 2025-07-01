@@ -1,0 +1,32 @@
+name: User Story
+description: Describe a new feature from the user's perspective.
+title: "[Story]: "
+labels: ["story"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for documenting a desired feature in user story format.
+  - type: textarea
+    id: story
+    attributes:
+      label: User Story
+      description: |
+        State the user story using the format: "As a <user>, I want <feature> so that <benefit>."
+      placeholder: |
+        As a clinician, I want to capture high-resolution images so that diagnoses are accurate.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: |
+        Provide each acceptance criterion using GIVEN / WHEN / THEN statements.
+      placeholder: |
+        GIVEN ...
+        WHEN ...
+        THEN ...
+    validations:
+      required: true

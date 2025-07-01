@@ -1,0 +1,35 @@
+name: Technical Task
+description: Plan work that requires technical implementation.
+title: "[Task]: "
+labels: ["task"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for internal technical work or chores.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Task Summary
+      description: Brief description of the work to be done.
+    validations:
+      required: true
+  - type: textarea
+    id: subtasks
+    attributes:
+      label: Subtasks or Links
+      description: |
+        Provide a checklist of subtasks or links to separate issues.
+      placeholder: |
+        - [ ] Implementation
+        - [ ] Unit tests
+    validations:
+      required: true
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information.
+    validations:
+      required: false
