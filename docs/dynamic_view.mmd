@@ -1,0 +1,17 @@
+```mermaid
+sequenceDiagram
+    actor Doctor
+    participant HomePage
+    participant FileVideoPage
+    participant FileVideoModel
+    participant ScreenshotPreview
+    participant AnnotatePage
+
+    Doctor->>HomePage: select "Open video player"
+    HomePage->>FileVideoPage: navigate
+    FileVideoPage->>FileVideoModel: initState()
+    FileVideoModel->>VideoPlayerController: load video
+    Doctor->>FileVideoPage: double tap screenshot
+    FileVideoPage->>ScreenshotPreview: capture
+    ScreenshotPreview->>AnnotatePage: push annotate route
+```

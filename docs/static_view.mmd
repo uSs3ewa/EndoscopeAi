@@ -1,0 +1,25 @@
+```mermaid
+flowchart LR
+    App((App))
+    Routes((Routes))
+    HomePage((HomePage))
+    FileVideo((FileVideoPlayer))
+    StreamVideo((StreamVideoPlayer))
+    Recordings((Recordings))
+    Annotate((Annotate))
+    STT((SpeechToText))
+    Shared((Shared Widgets))
+
+    App --> Routes
+    App --> HomePage
+    HomePage --> FileVideo
+    HomePage --> StreamVideo
+    HomePage --> Recordings
+    HomePage --> Annotate
+    HomePage --> STT
+    FileVideo --> Shared
+    StreamVideo --> Shared
+    Recordings --> Shared
+    Annotate --> Shared
+    STT --> Shared
+```
