@@ -39,17 +39,15 @@ class FileVideoPlayerPageStateModel {
         File(FilePicker.filePath.toString()),
       );
 
-      _initializeVideoPlayerFuture =
-          _controller // инициализация проигрывателя
-              .initialize()
-              .then((_) {
-                setState(() {
-                  totalDuration = _controller.value.duration;
-                });
-              })
-              .catchError((error) {
-                debugPrint('Ошибка инициализации видео: $error');
-              });
+      _initializeVideoPlayerFuture = _controller // инициализация проигрывателя
+          .initialize()
+          .then((_) {
+        setState(() {
+          totalDuration = _controller.value.duration;
+        });
+      }).catchError((error) {
+        debugPrint('Ошибка инициализации видео: $error');
+      });
     }
   }
 

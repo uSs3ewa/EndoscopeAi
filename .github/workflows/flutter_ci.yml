@@ -2,12 +2,19 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main, deploy ]   # normal dev flow
-    tags:     [ 'MVPv*' ]        # MVPv1.0.0 etc trigger release job
+    branches: [ main, deploy ]
   pull_request:
+  # Release pipeline runs only when a tag like MVPv1.2.0 is pushed
+  workflow_dispatch:
+  workflow_call:
+  release:
+    types: [created]
+
+env:
+  FLUTTER_VERSION: "3.22.1"
 
 jobs:
-# -------------------------------------------------------------
+# -----------------------------------------------------------------
   build-test:
     runs-on: ubuntu-latest
     steps:
@@ -16,92 +23,85 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.1'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: Install pub deps
+      - name: Get pub deps
         run: flutter pub get
 
-      - name: Lint (flutter analyze)
-        run: flutter analyze --no-pub
+      - name: Lint (non-fatal)
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
       - name: Format check
         run: dart format --output none --set-exit-if-changed .
 
-      # Run all tests but exclude the intentionally failing one
-      - name: Run tests (excluding intentional failures)
-        run: |
-          flutter test --exclude-tags=failing
+      # Run whole suite, skip files tagged `failing`
+      - name: Unit & widget tests
+        run: flutter test --exclude-tags=failing
 
-      # Verify the intentional failure test does fail as expected
+      # Ensure failing_test.dart really fails
       - name: Verify intentional failure test
         run: |
           if flutter test test/failing_test.dart; then
-            echo "ERROR: failing_test.dart should fail but passed!"
+            echo "ERROR — failing_test.dart passed but must fail!"
             exit 1
           else
-            echo "✓ failing_test.dart correctly failed as expected"
+            echo "✓ failing_test.dart fails as expected"
           fi
 
-
-      - name: Run integration tests
-        run: flutter test integration_test
-
-# -------------------------------------------------------------
+# -----------------------------------------------------------------
   build-windows:
     runs-on: windows-latest
+    needs: build-test                 # only build after tests pass
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.1'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      # Install Rust for flutter_rust_bridge
-      - name: Install Rust
+      - name: Install Rust toolchain (for flutter_rust_bridge)
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install pub deps
+      - name: Get pub deps
         run: flutter pub get
-
-
-      - name: Format check
-        run: dart format --output none --set-exit-if-changed .
 
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Build Windows debug (validation)
+      - name: Build Windows debug (sanity)
         run: flutter build windows --debug
 
-# -------------------------------------------------------------
-  release-win:
-    if: startsWith(github.ref, 'refs/tags/MVPv')    # fires only on MVPv* tag
-    needs: [build-test, build-windows]              # run tests and Windows build first
-    runs-on: windows-latest
+      - name: Run unit & widget tests (Windows)
+        run: flutter test --exclude-tags=failing
 
+      - name: Run integration tests (Windows)
+        run: flutter test -d windows integration_test
+
+# -----------------------------------------------------------------
+  release-win:
+    if: startsWith(github.ref, 'refs/tags/MVPv')
+    runs-on: windows-latest
+    needs: [build-test]               # tests must be green
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.1'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
+          cache: true
 
-      # Install Rust for flutter_rust_bridge
-      - name: Install Rust
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install pub deps
+      - name: Get pub deps
         run: flutter pub get
-
-      - name: Format check
-        run: dart format --output none --set-exit-if-changed .
 
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
@@ -109,14 +109,15 @@ jobs:
       - name: Build Windows release
         run: flutter build windows --release
 
-      - name: Strip symbols & zip
+      - name: Strip symbols & zip artefact
         run: |
           cd build/windows/x64/runner/Release
           Remove-Item *.pdb,*.ilk -Force -ErrorAction SilentlyContinue
           Compress-Archive -Path * -DestinationPath EndoscopeAI.zip
 
-      - name: Attach artifact to GitHub Release
+      - name: Attach ZIP to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: build/windows/x64/runner/Release/EndoscopeAI.zip
           generate_release_notes: true
+

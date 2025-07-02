@@ -43,14 +43,14 @@ class PenShape extends Shape {
 
   @override
   XmlNode toSvg(Size cs) => XmlElement(XmlName('polyline'), [
-    XmlAttribute(
-      XmlName('points'),
-      pts.map((rp) => _abs(cs, rp)).map((v) => '${v.dx},${v.dy}').join(' '),
-    ),
-    XmlAttribute(XmlName('fill'), 'none'),
-    XmlAttribute(XmlName('stroke'), _hx(color)),
-    XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
-  ]);
+        XmlAttribute(
+          XmlName('points'),
+          pts.map((rp) => _abs(cs, rp)).map((v) => '${v.dx},${v.dy}').join(' '),
+        ),
+        XmlAttribute(XmlName('fill'), 'none'),
+        XmlAttribute(XmlName('stroke'), _hx(color)),
+        XmlAttribute(XmlName('stroke-width'), strokeWidth.toStringAsFixed(1)),
+      ]);
 
   @override
   bool hitTest(Offset p, Size cs) =>
@@ -78,7 +78,7 @@ class PenShape extends Shape {
 class RectShape extends Shape {
   Offset p1, p2; // relative
   RectShape(this.p1, this.p2, Color col, double strokeWidth)
-    : super(col, strokeWidth);
+      : super(col, strokeWidth);
 
   Rect _rect(Size cs) => Rect.fromPoints(_abs(cs, p1), _abs(cs, p2));
 
@@ -131,7 +131,7 @@ class RectShape extends Shape {
 class EllipseShape extends Shape {
   Offset a, b; // opposite corners (rel)
   EllipseShape(this.a, this.b, Color col, double strokeWidth)
-    : super(col, strokeWidth);
+      : super(col, strokeWidth);
 
   @override
   void paint(Canvas c, Paint p, Size cs) {

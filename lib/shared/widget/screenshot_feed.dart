@@ -7,9 +7,9 @@ import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
 class ScreenshotFeed extends StatelessWidget {
   late List<ScreenshotPreviewModel>
-  _screenshotsCache; // ссылка на текущий список скриншотов
+      _screenshotsCache; // ссылка на текущий список скриншотов
   late final List<ScreenshotPreviewModel> Function()
-  _fetchScreenshots; // ф-ия для загрузки скриншотов
+      _fetchScreenshots; // ф-ия для загрузки скриншотов
   late final Function(Duration) _onTap; // обратный вызов при нажатии
 
   /*
