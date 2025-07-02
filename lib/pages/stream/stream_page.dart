@@ -79,6 +79,6 @@ class _StreamPageState extends State<StreamPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return _view.build(context);
+    return _view;
   }
 }
