@@ -171,145 +171,145 @@ class _AnnotatePageState extends State<AnnotatePage> {
   }
 
   Widget _toolbar() => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    child: Row(
-      children: [
-        // Выбор цвета с выделением
-        for (final c in _palette) _colorBtn(c),
-        const SizedBox(width: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          children: [
+            // Выбор цвета с выделением
+            for (final c in _palette) _colorBtn(c),
+            const SizedBox(width: 20),
 
-        // Выбор толщины с выделением
-        Text('Толщина: ', style: TextStyle(fontSize: 14)),
-        for (final w in _availableWidths) _widthBtn(w),
-        const SizedBox(width: 20),
+            // Выбор толщины с выделением
+            Text('Толщина: ', style: TextStyle(fontSize: 14)),
+            for (final w in _availableWidths) _widthBtn(w),
+            const SizedBox(width: 20),
 
-        // Выбор инструментов с выделением
-        _toolBtn(Icons.edit, Tool.pen),
-        _toolBtn(Icons.crop_square, Tool.rect),
-        _toolBtn(Icons.circle_outlined, Tool.circle),
-        _toolBtn(Icons.open_with, Tool.move),
-      ],
-    ),
-  );
+            // Выбор инструментов с выделением
+            _toolBtn(Icons.edit, Tool.pen),
+            _toolBtn(Icons.crop_square, Tool.rect),
+            _toolBtn(Icons.circle_outlined, Tool.circle),
+            _toolBtn(Icons.open_with, Tool.move),
+          ],
+        ),
+      );
 
   Widget _colorBtn(Color c) => GestureDetector(
-    onTap: () => setState(() => _color = c),
-    child: Container(
-      margin: const EdgeInsets.only(right: 6),
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: _color == c ? Colors.grey[300] : Colors.transparent,
-      ),
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: c,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.black26, width: 1),
+        onTap: () => setState(() => _color = c),
+        child: Container(
+          margin: const EdgeInsets.only(right: 6),
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: _color == c ? Colors.grey[300] : Colors.transparent,
+          ),
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: c,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black26, width: 1),
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _widthBtn(double width) => GestureDetector(
-    onTap: () => setState(() => _strokeWidth = width),
-    child: Container(
-      margin: const EdgeInsets.only(right: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: _strokeWidth == width ? Colors.grey[300] : Colors.transparent,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        width.toStringAsFixed(0),
-        style: TextStyle(
-          fontWeight: _strokeWidth == width
-              ? FontWeight.bold
-              : FontWeight.normal,
+        onTap: () => setState(() => _strokeWidth = width),
+        child: Container(
+          margin: const EdgeInsets.only(right: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color:
+                _strokeWidth == width ? Colors.grey[300] : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            width.toStringAsFixed(0),
+            style: TextStyle(
+              fontWeight:
+                  _strokeWidth == width ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _toolBtn(IconData i, Tool t) => Container(
-    margin: const EdgeInsets.only(right: 4),
-    decoration: BoxDecoration(
-      color: _tool == t ? Colors.grey[300] : Colors.transparent,
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: IconButton(
-      icon: Icon(
-        i,
-        color: _tool == t
-            ? Theme.of(context).colorScheme.primary
-            : Colors.black54,
-      ),
-      onPressed: () => setState(() => _tool = t),
-    ),
-  );
+        margin: const EdgeInsets.only(right: 4),
+        decoration: BoxDecoration(
+          color: _tool == t ? Colors.grey[300] : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: IconButton(
+          icon: Icon(
+            i,
+            color: _tool == t
+                ? Theme.of(context).colorScheme.primary
+                : Colors.black54,
+          ),
+          onPressed: () => setState(() => _tool = t),
+        ),
+      );
 
   // gestures
   void _start(DragStartDetails d) => setState(() {
-    final pos = _clampLocal(d.localPosition);
-    final rel = _toRel(pos);
+        final pos = _clampLocal(d.localPosition);
+        final rel = _toRel(pos);
 
-    if (_tool == Tool.move) {
-      for (final s in _elements.reversed) {
-        if (s.hitTest(pos, _imgSize)) {
-          _selected = s;
-          _lastRel = rel;
-          break;
+        if (_tool == Tool.move) {
+          for (final s in _elements.reversed) {
+            if (s.hitTest(pos, _imgSize)) {
+              _selected = s;
+              _lastRel = rel;
+              break;
+            }
+          }
+          return;
         }
-      }
-      return;
-    }
 
-    switch (_tool) {
-      case Tool.pen:
-        _draft = PenShape([rel], _color, _strokeWidth);
-      case Tool.rect:
-        _draft = RectShape(rel, rel, _color, _strokeWidth);
-      case Tool.circle:
-        _draft = EllipseShape(rel, rel, _color, _strokeWidth);
-      default:
-        break;
-    }
-  });
+        switch (_tool) {
+          case Tool.pen:
+            _draft = PenShape([rel], _color, _strokeWidth);
+          case Tool.rect:
+            _draft = RectShape(rel, rel, _color, _strokeWidth);
+          case Tool.circle:
+            _draft = EllipseShape(rel, rel, _color, _strokeWidth);
+          default:
+            break;
+        }
+      });
 
   void _update(DragUpdateDetails d) => setState(() {
-    final pos = _clampLocal(d.localPosition);
-    final rel = _toRel(pos);
+        final pos = _clampLocal(d.localPosition);
+        final rel = _toRel(pos);
 
-    if (_tool == Tool.move && _selected != null && _lastRel != null) {
-      _selected!.translateRel(rel - _lastRel!);
-      _lastRel = rel;
-      return;
-    }
+        if (_tool == Tool.move && _selected != null && _lastRel != null) {
+          _selected!.translateRel(rel - _lastRel!);
+          _lastRel = rel;
+          return;
+        }
 
-    if (_draft is PenShape) {
-      (_draft as PenShape).pts.add(rel);
-    } else if (_draft is RectShape) {
-      (_draft as RectShape).p2 = rel;
-    } else if (_draft is EllipseShape) {
-      (_draft as EllipseShape).b = rel;
-    }
-  });
+        if (_draft is PenShape) {
+          (_draft as PenShape).pts.add(rel);
+        } else if (_draft is RectShape) {
+          (_draft as RectShape).p2 = rel;
+        } else if (_draft is EllipseShape) {
+          (_draft as EllipseShape).b = rel;
+        }
+      });
 
   void _end(DragEndDetails d) => setState(() {
-    if (_tool == Tool.move) {
-      _selected = null;
-      _lastRel = null;
-      _commit();
-      return;
-    }
-    if (_draft != null) {
-      _elements.add(_draft!.clone());
-      _draft = null;
-      _commit();
-    }
-  });
+        if (_tool == Tool.move) {
+          _selected = null;
+          _lastRel = null;
+          _commit();
+          return;
+        }
+        if (_draft != null) {
+          _elements.add(_draft!.clone());
+          _draft = null;
+          _commit();
+        }
+      });
 
   // undo / redo
   void _undo() {
@@ -337,10 +337,9 @@ class _AnnotatePageState extends State<AnnotatePage> {
   // save SVG
   Future<void> _saveSvg() async {
     try {
-      final ui.Image img =
-          await (_globalKey.currentContext!.findRenderObject()
-                  as RenderRepaintBoundary)
-              .toImage(pixelRatio: 1.0);
+      final ui.Image img = await (_globalKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary)
+          .toImage(pixelRatio: 1.0);
       final w = img.width, h = img.height;
 
       final b64 = base64Encode(await File(widget.imagePath).readAsBytes());
@@ -348,8 +347,7 @@ class _AnnotatePageState extends State<AnnotatePage> {
       final shapesXml = _elements
           .map((e) => e.toSvg(Size(w.toDouble(), h.toDouble())).toXmlString())
           .join('\n  ');
-      final svg =
-          '''
+      final svg = '''
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink"
