@@ -29,6 +29,7 @@ dependencies:
   flutter_rust_bridge: ^2.10.0
   shared_preferences: ^2.2.2
   web_socket_channel: ^2.4.0
+  speech_to_text: ^6.3.0
 
 dev_dependencies:
   flutter_test:

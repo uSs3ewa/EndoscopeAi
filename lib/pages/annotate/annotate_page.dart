@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:image/image.dart' as img;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path/path.dart' as p;
+import 'package:endoscopy_ai/yolo/yolo_service.dart';
 
 import 'shapes.dart';
 
@@ -73,6 +75,10 @@ class _AnnotatePageState extends State<AnnotatePage> {
             onPressed: _histIx == _history.length - 1 ? null : _redo,
           ),
           IconButton(icon: const Icon(Icons.save), onPressed: _saveSvg),
+          IconButton(
+            icon: const Icon(Icons.biotech),
+            onPressed: _runDetection,
+          ),
         ],
       ),
       body: Row(
@@ -332,6 +338,23 @@ class _AnnotatePageState extends State<AnnotatePage> {
           ..addAll(_history[_histIx].map((e) => e.clone()));
       });
     }
+  }
+
+  Future<void> _runDetection() async {
+    final dets = await YoloService.instance.analyzeFile(widget.imagePath);
+    final bytes = await File(widget.imagePath).readAsBytes();
+    final image = img.decodeImage(bytes);
+    if (image == null) return;
+    final w = image.width.toDouble();
+    final h = image.height.toDouble();
+    setState(() {
+      for (final d in dets) {
+        final p1 = Offset(d.x1 / w, d.y1 / h);
+        final p2 = Offset(d.x2 / w, d.y2 / h);
+        _elements.add(RectShape(p1, p2, Colors.red, 3));
+      }
+      _commit();
+    });
   }
 
   // save SVG

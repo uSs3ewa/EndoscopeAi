@@ -4,7 +4,7 @@
 
 1. Перейдите в папку python_stt_server:
    ```
-   cd python_stt_server
+   cd python
    ```
 2. Установите зависимости:
    ```
