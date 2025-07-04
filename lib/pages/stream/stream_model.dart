@@ -26,7 +26,7 @@ class StreamPageModel with ChangeNotifier {
   Future<void>? _cameraInitializationFuture; // состояние инициализации камеры
   Timer? _cameraCheckTimer; // Таймер для периодической проверки
   StreamSubscription<String>? _sttSub;
-  final SttService _sttService = SttService(p.join(Directory.current.path, 'python', 'stt_stream.py'));
+  final SttService _sttService = SttService();
   int? _recordingTimestamp;
   String? _tempTranscriptPath;  final List<String> _transcripts = [];
   bool _isRecording = false;
@@ -262,6 +262,9 @@ class StreamPageModel with ChangeNotifier {
         notifyListeners();
       }
     });
+    _controller!.startImageStream((image) {
+      _sttService.sendAudio(image.planes[0].bytes);
+    });
     if (!_isDisposed) {
       notifyListeners();
     }
@@ -270,6 +273,7 @@ class StreamPageModel with ChangeNotifier {
   Future<String?> stopRecording({String? savePath}) async {
     if (!_isRecording || _controller == null || _isDisposed) return null;
     try {
+      await _controller!.stopImageStream();
       final file = await _controller!.stopVideoRecording();
       _isRecording = false;
       _isPaused = false;

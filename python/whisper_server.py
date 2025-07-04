@@ -10,25 +10,28 @@ LANGUAGE = "ru"  # только русский
 
 model = whisper.load_model("medium")  # Можно заменить на "small", "medium", "large"
 
-async def recognize_and_send(websocket):
-    print("Client connected")
-    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype='float32') as stream:
+async def audio_handler(websocket, path):
+    print("Client connected.")
+    try:
         while True:
-            audio_block, _ = stream.read(BLOCK_SIZE)
-            audio_block = np.squeeze(audio_block)
-            audio_block = whisper.pad_or_trim(audio_block)
-            mel = whisper.log_mel_spectrogram(audio_block).to(model.device)
-            options = whisper.DecodingOptions(language=LANGUAGE, fp16=False)
-            result = whisper.decode(model, mel, options)
-            text = result.text.strip()
+            audio_chunk_bytes = await websocket.recv()
+            audio_chunk_np = np.frombuffer(audio_chunk_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+            result = model.transcribe(audio_chunk_np, language=LANGUAGE, fp16=False)
+            text = result.get("text", "").strip()
+
             if text:
+                print(f"Recognized: {text}")
                 await websocket.send(text)
-            await asyncio.sleep(0.1)
+
+    except websockets.exceptions.ConnectionClosedOK:
+        print("Client disconnected.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 async def main():
-    async with websockets.serve(recognize_and_send, "localhost", 8765):
-        print("Server started at ws://localhost:8765")
-        await asyncio.Future()  # run forever
+    server = await websockets.serve(audio_handler, "localhost", 8765)
+    print("WebSocket STT server started at ws://localhost:8765")
+    await server.wait_closed()
 
 if __name__ == "__main__":
     asyncio.run(main())
