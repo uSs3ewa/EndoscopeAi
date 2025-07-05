@@ -2,10 +2,10 @@ import 'package:endoscopy_ai/features/patient/record_data.dart';
 import 'package:flutter/material.dart';
 
 class PatientRegistrationModel {
-  late String _name;
-  late String _surname;
-  late int _id;
-  late DateTime _time;
+  late String _name = '';
+  late String _surname = '';
+  late int _id = -1;
+  late DateTime _time = DateTime.fromMicrosecondsSinceEpoch(0);
 
   void setName(String newValue) => _name = newValue;
   void setSurname(String newValue) => _surname = newValue;
