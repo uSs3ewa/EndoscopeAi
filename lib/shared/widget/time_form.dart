@@ -6,7 +6,7 @@ class CustomTimeFormField extends StatelessWidget {
   late final PatientRegistrationModel _model;
   late final String _text;
   DateTime time = DateTime(2025, 5, 7, 3, 10);
-  final Function(DateTime) _onSave;
+  final void Function(DateTime) _onSave;
 
   CustomTimeFormField(this._model, this._text, this._onSave, {super.key});
 
@@ -53,7 +53,7 @@ class CustomTimeFormField extends StatelessWidget {
               mode: CupertinoDatePickerMode.time,
               use24hFormat: true,
               // This is called when the user changes the time.
-              onDateTimeChanged: (DateTime newTime) {},
+              onDateTimeChanged: _onSave,
             ),
           ),
           // In this example, the time value is formatted manually.

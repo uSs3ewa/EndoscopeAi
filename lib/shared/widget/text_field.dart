@@ -7,7 +7,7 @@ class CustomTextFormField extends StatelessWidget {
   final String _hintText;
   final IconData _icon;
   final TextInputFormatter _formatter;
-  final Function(String) _onSave;
+  final void Function(String) _onSave;
 
   CustomTextFormField(
       this._model, this._hintText, this._icon, this._formatter, this._onSave,
