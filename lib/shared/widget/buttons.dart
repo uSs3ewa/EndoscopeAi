@@ -11,13 +11,14 @@ Widget createRedirectButton(
   BuildContext context,
   String text,
   String routePath, {
-  bool disable = false,
+  bool disable = false, 
+  Object? arguments,
 }) {
   return ElevatedButton(
     onPressed: disable
         ? null
         : () {
-            Navigator.pushNamed(context, routePath);
+            Navigator.pushNamed(context, routePath, arguments: arguments);
           },
     child: Text(text),
   );

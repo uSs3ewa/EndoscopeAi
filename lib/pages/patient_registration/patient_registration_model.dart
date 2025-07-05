@@ -1,10 +1,13 @@
 import 'package:endoscopy_ai/features/patient/record_data.dart';
 
 class PatientRegistrationModel {
+  final String nextRoute;
   late String _name = '';
   late String _surname = '';
   late int _id = -1;
   late DateTime _time = DateTime.fromMicrosecondsSinceEpoch(0);
+
+  PatientRegistrationModel(this.nextRoute);
 
   void setName(String newValue) => _name = newValue;
   void setSurname(String newValue) => _surname = newValue;

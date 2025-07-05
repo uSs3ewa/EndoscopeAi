@@ -27,7 +27,7 @@ class CustomTextFormField extends StatelessWidget {
             hintStyle: const TextStyle(
               fontSize: 22.0,
               height: 1,
-              color: Color.fromARGB(255, 0, 0, 0),
+              color: Color.fromARGB(255, 57, 56, 56),
             ),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             contentPadding: const EdgeInsetsGeometry.all(5),
@@ -39,7 +39,7 @@ class CustomTextFormField extends StatelessWidget {
           style: const TextStyle(
             fontSize: 20.0,
             height: 1,
-            color: Color.fromARGB(255, 0, 0, 0),
+            color: Color.fromARGB(255, 57, 56, 56),
           ),
           onSaved: (String? value) => _onSave(value ?? ''),
           validator: (String? value) {

@@ -75,8 +75,9 @@ class PatientRegistrationViewState {
                           onPressed: () {
                             //переход на страницу плеера
                             Navigator.of(context).popAndPushNamed(
-                                Routes.fileVideoPlayer,
-                                arguments: _model.getRecordData());
+                                _model.nextRoute,
+                                arguments: _model.getRecordData()
+                                );
                           },
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),

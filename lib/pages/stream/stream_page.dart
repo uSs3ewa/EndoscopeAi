@@ -3,6 +3,7 @@
 // ====================================================
 
 import 'package:camera/camera.dart';
+import 'package:endoscopy_ai/features/patient/record_data.dart';
 import 'package:flutter/material.dart';
 import 'stream_model.dart';
 import 'stream_view.dart';
@@ -10,9 +11,10 @@ import 'stream_view.dart';
 // Страница просмотра потокового видео с камеры
 class StreamPage extends StatefulWidget {
   final CameraDescription camera; // Данные о камере
+  final RecordData? _recordData;
 
   // `camera` - данные о камеры, с которой будет браться видеопоток
-  const StreamPage({super.key, required this.camera});
+  const StreamPage(this._recordData, {super.key, required this.camera});
 
   @override
   State<StreamPage> createState() => _StreamPageState();

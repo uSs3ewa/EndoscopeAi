@@ -4,18 +4,19 @@ import 'package:flutter/material.dart';
 
 // Страница с воспроизведением видео с файла
 class PatientRegistrationPage extends StatefulWidget {
-  const PatientRegistrationPage({super.key});
+  final String _nextRoute;
+  const PatientRegistrationPage(this._nextRoute,{super.key});
 
   @override
-  State<PatientRegistrationPage> createState() => _PatientRegistrationState();
+  State<PatientRegistrationPage> createState() => _PatientRegistrationState(_nextRoute);
 }
 
 class _PatientRegistrationState extends State<PatientRegistrationPage> {
   late final PatientRegistrationModel _model;
   late final PatientRegistrationViewState _view;
 
-  _PatientRegistrationState() {
-    _model = PatientRegistrationModel();
+  _PatientRegistrationState(String nextRoute) {
+    _model = PatientRegistrationModel(nextRoute);
     _view = PatientRegistrationViewState(_model);
   }
 

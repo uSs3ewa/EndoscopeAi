@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
                 }
                 await FilePicker.pickFile();
 
-                Navigator.pushNamed(context, Routes.patientRegistration);
+                Navigator.pushNamed(context, Routes.patientRegistration, arguments: Routes.fileVideoPlayer);
               } catch (error) {
                 await showDialog(
                   context: context,
@@ -96,6 +96,7 @@ class _HomePageState extends State<HomePage> {
       'Открыть стриминговый плеер',
       Routes.patientRegistration,
       disable: _disableControls,
+      arguments: Routes.streamVideoPlayer,
     );
   }
 }
