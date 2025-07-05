@@ -1,3 +1,4 @@
+import 'package:endoscopy_ai/features/patient/record_data.dart';
 import 'package:flutter/material.dart';
 
 class PatientRegistrationModel {
@@ -10,4 +11,7 @@ class PatientRegistrationModel {
   void setSurname(String newValue) => _surname = newValue;
   void setId(String newValue) => _id = int.tryParse(newValue) ?? -1;
   void setTime(DateTime newValue) => _time = newValue;
+
+  RecordData getRecordData() =>
+      RecordData(name: _name, surname: _surname, id: _id, time: _time);
 }

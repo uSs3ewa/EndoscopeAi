@@ -8,13 +8,15 @@ import 'package:fvp/fvp.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
+import 'package:endoscopy_ai/features/patient/record_data.dart';
 import 'package:endoscopy_ai/shared/file_choser.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
 // Модель содержащая, данные и логику
 class FileVideoPlayerPageStateModel {
-  FileVideoPlayerPageStateModel(this.setState);
+  FileVideoPlayerPageStateModel(this.setState, this.recordData);
 
+  final RecordData recordData;
   final Function setState; // callback для обновить сосотояние
   late final VideoPlayerController _controller;
   late final Future<void> _initializeVideoPlayerFuture;

@@ -10,18 +10,17 @@ class PatientRegistrationPage extends StatefulWidget {
   State<PatientRegistrationPage> createState() => _PatientRegistrationState();
 }
 
-class _PatientRegistrationState extends State<PatientRegistrationPage>{
-  late final _model;
-  late final _view;
+class _PatientRegistrationState extends State<PatientRegistrationPage> {
+  late final PatientRegistrationModel _model;
+  late final PatientRegistrationViewState _view;
 
-  _PatientRegistrationState(){
+  _PatientRegistrationState() {
     _model = PatientRegistrationModel();
     _view = PatientRegistrationViewState(_model);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return _view.build(context);
   }
-
 }
