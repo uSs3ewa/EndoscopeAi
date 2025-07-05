@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 class CustomTimeFormField extends StatelessWidget {
   late final PatientRegistrationModel _model;
   late final String _text;
-  DateTime time = DateTime(2025, 5, 7, 3, 10);
+  DateTime time;
   final void Function(DateTime) _onSave;
 
-  CustomTimeFormField(this._model, this._text, this._onSave, {super.key});
+  CustomTimeFormField(this._model, this._text, this._onSave, {super.key})
+      : time = DateTime.now();
 
   // This function displays a CupertinoModalPopup with a reasonable fixed height
   // which hosts CupertinoDatePicker.
@@ -60,7 +61,7 @@ class CustomTimeFormField extends StatelessWidget {
           // You can use the intl package to format the value based on
           // the user's locale settings.
           child: Text(
-            '${time.hour}:${time.minute}',
+            '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
             style: const TextStyle(
               fontSize: 22.0,
               height: 0,
