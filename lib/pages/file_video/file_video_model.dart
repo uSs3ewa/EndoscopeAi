@@ -142,4 +142,16 @@ class FileVideoPlayerPageStateModel {
   void dispose() {
     _controller.dispose();
   }
+
+  @visibleForTesting
+  Future<void> get initializeFuture => _initializeVideoPlayerFuture;
+
+  @visibleForTesting
+  set controllerForTest(VideoPlayerController controller) {
+    _controller = controller;
+    _initializeVideoPlayerFuture = controller.initialize().then((_) {
+      currentPosition = controller.value.position;
+      totalDuration = controller.value.duration;
+    });
+  }
 }
