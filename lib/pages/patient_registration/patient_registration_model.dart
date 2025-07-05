@@ -1,5 +1,4 @@
 import 'package:endoscopy_ai/features/patient/record_data.dart';
-import 'package:flutter/material.dart';
 
 class PatientRegistrationModel {
   late String _name = '';

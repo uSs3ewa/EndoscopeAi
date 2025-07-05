@@ -32,13 +32,14 @@ class StreamPageView extends StatelessWidget {
     * `onPictureTaken` - ф-ия вызываемая после сохрания изображения
   */
   const StreamPageView({
-    Key? key,
+    super.key,
     required this.model,
     required this.camera,
     required this.onBackPressed,
     required this.onPictureTaken,
-  }) : super(key: key);
+  });
 
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: model,
@@ -130,8 +131,9 @@ class StreamPageView extends StatelessWidget {
         floatingActionButton: Builder(
           builder: (context) {
             final model = Provider.of<StreamPageModel>(context, listen: true);
-            if (!model.isInitialized || model.controller == null)
+            if (!model.isInitialized || model.controller == null) {
               return const SizedBox.shrink();
+            }
             final buttons = <Widget>[
               FloatingActionButton(
                 heroTag: 'shot_btn',

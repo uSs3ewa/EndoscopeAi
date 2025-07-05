@@ -8,6 +8,7 @@ class CustomSlider extends StatelessWidget {
 
   const CustomSlider({required this.modelVideoPlayer});
 
+  @override
   Widget build(BuildContext context) {
     return Positioned(
       bottom: 0,
@@ -54,7 +55,7 @@ class CustomSlider extends StatelessWidget {
       currentPosition: modelVideoPlayer.currentPosition,
       totalDuration: modelVideoPlayer.totalDuration,
       shots: modelVideoPlayer.shots,
-      modelVideoPlayer: this.modelVideoPlayer,
+      modelVideoPlayer: modelVideoPlayer,
     );
   }
 }

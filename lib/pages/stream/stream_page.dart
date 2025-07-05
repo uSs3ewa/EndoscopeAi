@@ -12,7 +12,7 @@ class StreamPage extends StatefulWidget {
   final CameraDescription camera; // Данные о камере
 
   // `camera` - данные о камеры, с которой будет браться видеопоток
-  const StreamPage({Key? key, required this.camera}) : super(key: key);
+  const StreamPage({super.key, required this.camera});
 
   @override
   State<StreamPage> createState() => _StreamPageState();

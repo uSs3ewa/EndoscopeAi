@@ -237,8 +237,9 @@ class StreamPageModel with ChangeNotifier {
   }
 
   Future<void> startRecording() async {
-    if (_isRecording || !_isInitialized || _controller == null || _isDisposed)
+    if (_isRecording || !_isInitialized || _controller == null || _isDisposed) {
       return;
+    }
     await _controller!.startVideoRecording();
     _isRecording = true;
     _isPaused = false;

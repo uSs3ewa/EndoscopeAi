@@ -1,11 +1,9 @@
 import 'package:endoscopy_ai/pages/patient_registration/patient_registration_model.dart';
 import 'package:endoscopy_ai/routes.dart';
-import 'package:endoscopy_ai/shared/widget/spacing.dart';
 import 'package:endoscopy_ai/shared/widget/text_field.dart';
 import 'package:endoscopy_ai/shared/widget/time_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 class PatientRegistrationViewState {
   late final PatientRegistrationModel _model;

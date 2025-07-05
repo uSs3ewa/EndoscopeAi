@@ -85,7 +85,7 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
 
   Widget _buildRecordingItem(BuildContext context, Recording recording) {
     final displayName =
-        (recording.fileName != null && recording.fileName.isNotEmpty)
+        (recording.fileName.isNotEmpty)
             ? recording.fileName
             : 'Запись ${recording.timestamp.toString()}';
     if (_editMode) {

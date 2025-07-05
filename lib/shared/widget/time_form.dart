@@ -2,13 +2,26 @@ import 'package:endoscopy_ai/pages/patient_registration/patient_registration_mod
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class CustomTimeFormField extends StatelessWidget {
+// Взято с https://api.flutter.dev/flutter/cupertino/CupertinoDatePicker-class.html
+
+class CustomTimeFormField extends StatefulWidget {
+    late final PatientRegistrationModel _model;
+  late final String _text;
+  final void Function(DateTime) _onSave;
+
+  CustomTimeFormField(this._model, this._text, this._onSave, {super.key});
+
+  @override
+  State<CustomTimeFormField> createState() => _CustomTimeFormFieldState(_model, _text, _onSave);
+}
+
+class _CustomTimeFormFieldState extends State<CustomTimeFormField>{
   late final PatientRegistrationModel _model;
   late final String _text;
   DateTime time;
   final void Function(DateTime) _onSave;
 
-  CustomTimeFormField(this._model, this._text, this._onSave, {super.key})
+  _CustomTimeFormFieldState(this._model, this._text, this._onSave)
       : time = DateTime.now();
 
   // This function displays a CupertinoModalPopup with a reasonable fixed height
@@ -53,8 +66,8 @@ class CustomTimeFormField extends StatelessWidget {
               initialDateTime: time,
               mode: CupertinoDatePickerMode.time,
               use24hFormat: true,
-              // This is called when the user changes the time.
-              onDateTimeChanged: _onSave,
+              // This is called when the user changes the time.. 
+              onDateTimeChanged: (DateTime newValue) => setState(() => _onSave(newValue)),
             ),
           ),
           // In this example, the time value is formatted manually.

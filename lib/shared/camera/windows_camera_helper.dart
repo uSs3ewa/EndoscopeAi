@@ -89,7 +89,7 @@ class WindowsCameraHelper {
 
       // Create controller with Windows-optimized settings
       final controller = CameraController(
-        targetCamera!,
+        targetCamera,
         resolution,
         enableAudio: enableAudio,
         imageFormatGroup: ImageFormatGroup.jpeg,
@@ -305,7 +305,6 @@ class WindowsCameraHelper {
           } else if (error.description?.contains('access denied') == true) {
             return 'Camera access denied. Please check Windows privacy settings for camera access.';
           }
-          break;
         case 'not_available':
           return 'Camera is not available. Please check if the camera is connected and drivers are installed.';
         case 'not_initialized':
