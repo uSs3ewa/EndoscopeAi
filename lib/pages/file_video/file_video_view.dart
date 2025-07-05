@@ -36,7 +36,7 @@ class FileVidePlayerPageStateView {
             /// ВИДЕО
             _buildVideo(context),
 
-            createIndention(),
+            createIndention(5, 5),
 
             /// ЛЕНТА СКРИНШОТОВ
             ScreenshotFeed(

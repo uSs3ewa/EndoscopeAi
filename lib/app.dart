@@ -1,6 +1,8 @@
 // ====================================================
 //  Главное окно приложения, на котором производится отрисовка
 // ====================================================
+import 'package:endoscopy_ai/pages/patient_registration/patient_registration_page.dart';
+
 import 'routes.dart';
 
 import 'package:flutter/material.dart';
@@ -64,6 +66,7 @@ class _AppState extends State<App> {
         Routes.recordings: (context) => RecordingsPage(),
         Routes.homePage: (context) => const HomePage(),
         Routes.fileVideoPlayer: (context) => const FileVidePlayerPage(),
+        Routes.patientRegistration: (context) => const PatientRegistrationPage(),
         Routes.streamVideoPlayer: (context) {
           if (!_isCameraInitialized) {
             return const Scaffold(

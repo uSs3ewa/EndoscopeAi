@@ -27,9 +27,9 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _createStreamVideoPlayerButton(context),
-            createIndention(),
+            createIndention(20, 15),
             _createVideoPlayerButton(context),
-            createIndention(),
+            createIndention(20, 15),
             _createRecordingsButton(context),
           ],
         ),
@@ -50,11 +50,11 @@ class _HomePageState extends State<HomePage> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text('Открыаем меню...')));
+                  ).showSnackBar(SnackBar(content: Text('Открываем меню...')));
                 }
                 await FilePicker.pickFile();
 
-                Navigator.pushNamed(context, Routes.fileVideoPlayer);
+                Navigator.pushNamed(context, Routes.patientRegistration);
               } catch (error) {
                 await showDialog(
                   context: context,
@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
     return createRedirectButton(
       context,
       'Открыть стриминговый плеер',
-      Routes.streamVideoPlayer,
+      Routes.patientRegistration,
       disable: _disableControls,
     );
   }

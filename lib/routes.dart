@@ -9,6 +9,7 @@ class Routes {
   static final recordings = '/recordings';
   static final homePage = '/';
   static final annotate = '/annotate';
+  static final patientRegistration = '/patient';
 
   static final root = homePage;
 }

@@ -31,6 +31,7 @@ class _FileVidePlayerPageState extends State<FileVidePlayerPage> {
 
     _model.initState();
 
+// Перенести в model!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Добавляем запись в список записей, если файл валиден
     if (FilePicker.checkFile() && FilePicker.filePath != null) {
       final filePath = FilePicker.filePath!;
@@ -43,6 +44,7 @@ class _FileVidePlayerPageState extends State<FileVidePlayerPage> {
         ),
       );
     }
+    // Перенести в model!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Обновляем позицию каждые 100 мс
     _model.controller.addListener(_updateProgress);

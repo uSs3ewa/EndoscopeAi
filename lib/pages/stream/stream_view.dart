@@ -100,7 +100,7 @@ class StreamPageView extends StatelessWidget {
                     },
                   ),
                 ),
-                createIndention(),
+                createIndention(5, 5),
                 Expanded(
                   child: Column(
                     children: [
@@ -147,7 +147,7 @@ class StreamPageView extends StatelessWidget {
 
             void addSpace() => buttons.add(const SizedBox(height: 8));
 
-            if (!model.recording) {
+            if (!model.recording) { // Заменить!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               addSpace();
               buttons.add(
                 FloatingActionButton.extended(
@@ -191,7 +191,7 @@ class StreamPageView extends StatelessWidget {
                         SnackBar(content: Text('Сохранено в "$finalPath"')),
                       );
                     }
-                  },
+                  }, // Заменить!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 ),
               );
             }

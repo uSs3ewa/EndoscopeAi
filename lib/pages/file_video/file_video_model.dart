@@ -62,14 +62,13 @@ class FileVideoPlayerPageStateModel {
 
   // установить время на видео
   void seekTo(Duration pos) {
-    // !!!!!!!!!!!!!! Проблема с неймингом
     _controller.seekTo(pos);
     if (_isPlaying) {
       togglePlayPause(); // если было включено - поставим на паузу
     }
   }
 
-  // зделать скриншот
+  // сделать скриншот
   void makeScreenshot() async {
     final width = _controller.value.size.width.toInt();
     final height = _controller.value.size.height.toInt();
