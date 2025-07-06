@@ -144,14 +144,24 @@ class FileVideoPlayerPageStateModel {
   }
 
   @visibleForTesting
-  Future<void> get initializeFuture => _initializeVideoPlayerFuture;
+  Future<void> get initializeFuture => _initializeVideoPlayerFuture ?? Future.value();
 
   @visibleForTesting
   set controllerForTest(VideoPlayerController controller) {
     _controller = controller;
     _initializeVideoPlayerFuture = controller.initialize().then((_) {
-      currentPosition = controller.value.position;
-      totalDuration = controller.value.duration;
+      if (controller.value.isInitialized) {
+        currentPosition = controller.value.position;
+        totalDuration = controller.value.duration;
+      }
     });
   }
+
+  @visibleForTesting
+  static Future<void> prepareTestDir(Directory dir) async {
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+  }
+
 }

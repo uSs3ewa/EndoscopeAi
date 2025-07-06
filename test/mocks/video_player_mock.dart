@@ -1,48 +1,73 @@
-import 'package:flutter/services.dart';
-import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui';
 
-class MockVideoPlayerPlatform extends VideoPlayerPlatform {
-  @override
-  Future<void> init() async {}
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:mockito/mockito.dart';
+import 'package:video_player/video_player.dart';
+import 'package:endoscopy_ai/features/patient/record_data.dart';
+import 'package:endoscopy_ai/pages/file_video/file_video_model.dart';
 
-  @override
-  Future<int?> create(DataSource dataSource) async => 1;
+class MockVideoPlayerController extends Mock implements VideoPlayerController {
+  final VideoPlayerValue _value;
 
-  @override
-  Future<void> dispose(int textureId) async {}
-
-  @override
-  Future<void> initVideo(int textureId) async {}
-
-  @override
-  Future<void> pause(int textureId) async {}
-
-  @override
-  Future<void> play(int textureId) async {}
-
-  @override
-  Future<Duration> getPosition(int textureId) async => Duration.zero;
-
-  @override
-  Future<void> seekTo(int textureId, Duration position) async {}
+  MockVideoPlayerController({
+    Duration duration = const Duration(seconds: 60),
+    Size size = const Size(1920, 1080),
+    bool isInitialized = true,
+  }) : _value = VideoPlayerValue(
+          duration: duration,
+          size: size,
+          isInitialized: isInitialized,
+        );
 
   @override
-  Future<void> setLooping(int textureId, bool looping) async {}
+  Future<void> initialize() async {
+    await Future.delayed(Duration.zero);
+  }
 
   @override
-  Future<void> setVolume(int textureId, double volume) async {}
+  VideoPlayerValue get value => _value;
 
   @override
-  Future<void> setPlaybackSpeed(int textureId, double speed) async {}
+  Future<Uint8List?> snapshot() async {
+    return Uint8List.fromList(List.generate(
+      1920 * 1080 * 4,
+      (index) => index % 256,
+    ));
+  }
+
+   @override
+  Future<void> seekTo(Duration position) async {
+    super.noSuchMethod(
+      Invocation.method(#seekTo, [position]),
+      returnValue: Future.value(),
+      returnValueForMissingStub: Future.value(),
+    );
+  }
+}
+
+class MockRecordData extends Mock implements RecordData {
+  @override
+  int get id => 1;
 
   @override
-  Future<Duration> getDuration(int textureId) async => Duration(seconds: 60);
+  String get filePath => 'test_video.mp4';
 
   @override
-  Stream<VideoEvent> videoEventsFor(int textureId) => 
-      Stream.value(VideoEvent(
-        eventType: VideoEventType.initialized,
-        duration: Duration(seconds: 60),
-        size: Size(1920, 1080),
-      ));
+  DateTime get createdAt => DateTime.now();
+}
+
+class FakeFilePicker {
+  static String? filePath = 'test_video.mp4';
+
+  static bool checkFile() => filePath != null;
+
+  static Future<FilePickerResult?> pickFiles() async {
+    return filePath != null
+        ? FilePickerResult([PlatformFile(path: filePath, size: 1024, name: '')])
+        : null;
+  }
 }
