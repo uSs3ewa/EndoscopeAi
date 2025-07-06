@@ -1,14 +1,9 @@
-import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
+import 'package:endoscopy_ai/features/patient/record_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:video_player/video_player.dart';
-import 'package:endoscopy_ai/features/patient/record_data.dart';
-import 'package:endoscopy_ai/pages/file_video/file_video_model.dart';
 
 class MockVideoPlayerController extends Mock implements VideoPlayerController {
   final VideoPlayerValue _value;
@@ -24,31 +19,47 @@ class MockVideoPlayerController extends Mock implements VideoPlayerController {
         );
 
   @override
-  Future<void> initialize() async {
-    await Future.delayed(Duration.zero);
-  }
-
-  @override
   VideoPlayerValue get value => _value;
 
+  // Remove all real implementations - let Mockito handle everything
   @override
-  Future<Uint8List?> snapshot() async {
-    return Uint8List.fromList(List.generate(
-      1920 * 1080 * 4,
-      (index) => index % 256,
-    ));
-  }
+  Future<void> initialize() => super.noSuchMethod(
+        Invocation.method(#initialize, []),
+        returnValue: Future.value(),
+      );
 
-   @override
-  Future<void> seekTo(Duration position) async {
-    super.noSuchMethod(
-      Invocation.method(#seekTo, [position]),
-      returnValue: Future.value(),
-      returnValueForMissingStub: Future.value(),
-    );
-  }
+  @override
+  Future<void> seekTo(Duration position) => super.noSuchMethod(
+        Invocation.method(#seekTo, [position]),
+        returnValue: Future.value(),
+      );
+
+  @override
+  Future<void> dispose() => super.noSuchMethod(
+        Invocation.method(#dispose, []),
+        returnValue: Future.value(),
+      );
+
+  @override
+  Future<void> play() => super.noSuchMethod(
+        Invocation.method(#play, []),
+        returnValue: Future.value(),
+      );
+
+  @override
+  Future<void> pause() => super.noSuchMethod(
+        Invocation.method(#pause, []),
+        returnValue: Future.value(),
+      );
+
+  @override
+  Future<Uint8List?> snapshot() => super.noSuchMethod(
+        Invocation.method(#snapshot, []),
+        returnValue: Future.value(Uint8List(0)),
+      );
+
+      
 }
-
 class MockRecordData extends Mock implements RecordData {
   @override
   int get id => 1;
@@ -58,16 +69,24 @@ class MockRecordData extends Mock implements RecordData {
 
   @override
   DateTime get createdAt => DateTime.now();
+
+  // Add any other required overrides from your RecordData class
+  @override
+  bool get isProcessed => false; // Example additional field
+
+  @override
+  String? get diagnosis => null; // Example additional field
 }
 
 class FakeFilePicker {
   static String? filePath = 'test_video.mp4';
 
-  static bool checkFile() => filePath != null;
+  static Future<String?> pickVideo() async {
+    return filePath;
+  }
 
-  static Future<FilePickerResult?> pickFiles() async {
-    return filePath != null
-        ? FilePickerResult([PlatformFile(path: filePath, size: 1024, name: '')])
-        : null;
+  static Future<bool> checkFileExists(String? path) async {
+    return path != null;
   }
 }
+
