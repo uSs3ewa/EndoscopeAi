@@ -206,13 +206,13 @@ The customer installs by extracting the release archive and launching the bundle
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/badge/Contributors-7-blue
 [contributors-url]: https://github.com/GooseKIller/EndoscopeAi/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
+[forks-shield]: https://img.shields.io/badge/Forks-2-red
 [forks-url]: https://github.com/GooseKIller/EndoscopeAi/forks
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/badge/Stars-2-yellow
 [stars-url]: https://github.com/GooseKIller/EndoscopeAi/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
+[issues-shield]: https://img.shields.io/badge/Issues-7-purple
 [issues-url]: https://github.com/GooseKIller/EndoscopeAi/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
 [license-url]: https://github.com/GooseKIller/EndoscopeAi/blob/main/LICENSE
