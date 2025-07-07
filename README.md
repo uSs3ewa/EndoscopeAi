@@ -4,6 +4,7 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
+[![Unlicense License][license-shield]][license-url]
 
 
 
@@ -214,5 +215,5 @@ The customer installs by extracting the release archive and launching the bundle
 [stars-url]: https://github.com/GooseKIller/EndoscopeAi/stargazers
 [issues-shield]: https://img.shields.io/badge/Issues-7-green%3Fstyle%3Dsocial
 [issues-url]: https://github.com/GooseKIller/EndoscopeAi/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/License-MIT-blue
 [license-url]: https://github.com/GooseKIller/EndoscopeAi/blob/main/LICENSE
