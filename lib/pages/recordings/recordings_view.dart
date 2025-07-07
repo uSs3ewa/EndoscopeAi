@@ -85,7 +85,7 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
 
   Widget _buildRecordingItem(BuildContext context, Recording recording) {
     final displayName =
-        (recording.fileName != null && recording.fileName.isNotEmpty)
+        (recording.fileName.isNotEmpty)
             ? recording.fileName
             : 'Запись ${recording.timestamp.toString()}';
     if (_editMode) {
@@ -135,25 +135,6 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ElevatedButton.icon(
-            icon: Icon(Icons.videocam),
-            label: Text('Сделать запись'),
-            onPressed: () {
-              Navigator.pushNamed(context, '/streamVideoPlayer');
-            },
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          ),
-          SizedBox(width: 20),
-          ElevatedButton.icon(
-            icon: Icon(Icons.video_library),
-            label: Text('Импортировать видео'),
-            onPressed: () => _importVideo(context),
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          ),
           SizedBox(width: 20),
           ElevatedButton.icon(
             icon: Icon(_editMode ? Icons.close : Icons.edit),

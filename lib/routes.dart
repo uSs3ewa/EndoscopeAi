@@ -4,11 +4,12 @@
 
 // Хранилище все routes для избежания багов изза очепяток
 class Routes {
-  static final fileVideoPlayer = '/fileVideoPlayer';
-  static final streamVideoPlayer = '/streamVideoPlayer';
-  static final recordings = '/recordings';
-  static final homePage = '/';
-  static final annotate = '/annotate';
+  static const fileVideoPlayer = '/fileVideoPlayer';
+  static const streamVideoPlayer = '/streamVideoPlayer';
+  static const recordings = '/recordings';
+  static const homePage = '/';
+  static const annotate = '/annotate';
+  static const patientRegistration = '/patient';
 
   static final root = homePage;
 }

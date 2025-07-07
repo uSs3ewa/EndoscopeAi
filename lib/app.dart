@@ -1,6 +1,9 @@
 // ====================================================
 //  Главное окно приложения, на котором производится отрисовка
 // ====================================================
+import 'package:endoscopy_ai/features/patient/record_data.dart';
+import 'package:endoscopy_ai/pages/patient_registration/patient_registration_page.dart';
+
 import 'routes.dart';
 
 import 'package:flutter/material.dart';
@@ -63,7 +66,13 @@ class _AppState extends State<App> {
       routes: {
         Routes.recordings: (context) => RecordingsPage(),
         Routes.homePage: (context) => const HomePage(),
-        Routes.fileVideoPlayer: (context) => const FileVidePlayerPage(),
+        Routes.fileVideoPlayer: (context) => FileVidePlayerPage(
+            ModalRoute.of(context)!.settings.arguments as RecordData),
+        Routes.patientRegistration: (context) =>
+            PatientRegistrationPage(
+              ModalRoute.of(context)!.settings.arguments as String
+            ),
+
         Routes.streamVideoPlayer: (context) {
           if (!_isCameraInitialized) {
             return const Scaffold(
@@ -89,7 +98,7 @@ class _AppState extends State<App> {
               ),
             );
           }
-          return StreamPage(camera: cameras.first);
+          return StreamPage(camera: cameras.first, ModalRoute.of(context)!.settings.arguments as RecordData);
         },
         Routes.annotate: (context) {
           final path = ModalRoute.of(context)!.settings.arguments as String;

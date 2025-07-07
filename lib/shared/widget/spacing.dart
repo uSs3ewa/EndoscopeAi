@@ -4,6 +4,6 @@
 import 'package:flutter/material.dart';
 
 // Возвращает `SizedBox` 5 ны 20
-Widget createIndention() {
-  return const SizedBox(height: 20, width: 5);
+Widget createIndention(double height, double width) {
+  return SizedBox(height: height, width: width);
 }

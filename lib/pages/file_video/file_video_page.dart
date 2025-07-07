@@ -1,6 +1,7 @@
 // ====================================================
 //  Страница для вопроизведения зяписанного видео
 // ====================================================
+import 'package:endoscopy_ai/features/patient/record_data.dart';
 import 'package:flutter/material.dart';
 import 'file_video_model.dart';
 import 'file_video_view.dart';
@@ -10,18 +11,24 @@ import 'package:path/path.dart' as p;
 
 // Страница с воспроизведением видео с файла
 class FileVidePlayerPage extends StatefulWidget {
-  const FileVidePlayerPage({super.key});
+  final RecordData? _recordData;
+
+  const FileVidePlayerPage(this._recordData, {super.key});
 
   @override
-  State<FileVidePlayerPage> createState() => _FileVidePlayerPageState();
+  State<FileVidePlayerPage> createState() =>
+      _FileVidePlayerPageState(_recordData);
 }
 
 class _FileVidePlayerPageState extends State<FileVidePlayerPage> {
   late final _model; // бэкенд логика
   late final _view; // фронтенд логика
 
-  _FileVidePlayerPageState() {
-    _model = FileVideoPlayerPageStateModel(setState);
+  _FileVidePlayerPageState(RecordData? recordData) {
+    if (recordData == null) {
+      throw ErrorDescription("NULL RECORD DATA");
+    }
+    _model = FileVideoPlayerPageStateModel(setState, recordData);
     _view = FileVidePlayerPageStateView(setState, _model);
   }
 
@@ -31,6 +38,7 @@ class _FileVidePlayerPageState extends State<FileVidePlayerPage> {
 
     _model.initState();
 
+// Перенести в model!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Добавляем запись в список записей, если файл валиден
     if (FilePicker.checkFile() && FilePicker.filePath != null) {
       final filePath = FilePicker.filePath!;
@@ -43,6 +51,7 @@ class _FileVidePlayerPageState extends State<FileVidePlayerPage> {
         ),
       );
     }
+    // Перенести в model!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Обновляем позицию каждые 100 мс
     _model.controller.addListener(_updateProgress);

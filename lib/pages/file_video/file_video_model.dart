@@ -8,13 +8,15 @@ import 'package:fvp/fvp.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
+import 'package:endoscopy_ai/features/patient/record_data.dart';
 import 'package:endoscopy_ai/shared/file_choser.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 
 // Модель содержащая, данные и логику
 class FileVideoPlayerPageStateModel {
-  FileVideoPlayerPageStateModel(this.setState);
+  FileVideoPlayerPageStateModel(this.setState, this.recordData);
 
+  final RecordData recordData;
   final Function setState; // callback для обновить сосотояние
   late final VideoPlayerController _controller;
   late final Future<void> _initializeVideoPlayerFuture;
@@ -62,14 +64,13 @@ class FileVideoPlayerPageStateModel {
 
   // установить время на видео
   void seekTo(Duration pos) {
-    // !!!!!!!!!!!!!! Проблема с неймингом
     _controller.seekTo(pos);
     if (_isPlaying) {
       togglePlayPause(); // если было включено - поставим на паузу
     }
   }
 
-  // зделать скриншот
+  // сделать скриншот
   void makeScreenshot() async {
     final width = _controller.value.size.width.toInt();
     final height = _controller.value.size.height.toInt();
@@ -141,4 +142,26 @@ class FileVideoPlayerPageStateModel {
   void dispose() {
     _controller.dispose();
   }
+
+  @visibleForTesting
+  Future<void> get initializeFuture => _initializeVideoPlayerFuture ?? Future.value();
+
+  @visibleForTesting
+  set controllerForTest(VideoPlayerController controller) {
+    _controller = controller;
+    _initializeVideoPlayerFuture = controller.initialize().then((_) {
+      if (controller.value.isInitialized) {
+        currentPosition = controller.value.position;
+        totalDuration = controller.value.duration;
+      }
+    });
+  }
+
+  @visibleForTesting
+  static Future<void> prepareTestDir(Directory dir) async {
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+  }
+
 }

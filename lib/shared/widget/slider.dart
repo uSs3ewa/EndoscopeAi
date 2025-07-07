@@ -20,7 +20,7 @@ class CustomSliderWithMarks extends StatefulWidget {
 
   @override
   _CustomSliderWithMarksState createState() =>
-      _CustomSliderWithMarksState(modelVideoPlayer: this.modelVideoPlayer);
+      _CustomSliderWithMarksState(modelVideoPlayer: modelVideoPlayer);
 }
 
 class _CustomSliderWithMarksState extends State<CustomSliderWithMarks> {

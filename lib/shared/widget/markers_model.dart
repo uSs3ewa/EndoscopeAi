@@ -46,7 +46,7 @@ class MarkersModel {
     final tappedMs = (localOffset / sliderWidth) * totalMs;
 
     // Ищем ближайшую насечку в пределах 10 пикселей
-    final pixelThreshold = 10.0;
+    const pixelThreshold = 10.0;
     final msThreshold = (pixelThreshold / sliderWidth) * totalMs;
 
     ScreenshotPreviewModel? closestShot;

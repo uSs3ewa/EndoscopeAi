@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:endoscopy_ai/shared/widget/buttons.dart';
 import 'recordings_view.dart';
 import 'recordings_model.dart';
 
 class RecordingsPage extends StatefulWidget {
+
   @override
   _RecordingsPageState createState() => _RecordingsPageState();
 }
@@ -30,7 +30,6 @@ class _RecordingsPageState extends State<RecordingsPage> {
           Expanded(
             child: RecordingsPageView(model: _model, refresh: _refresh),
           ),
-          createBackHomeButton(context),
         ],
       ),
     );
