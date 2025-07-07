@@ -212,7 +212,7 @@ The customer installs by extracting the release archive and launching the bundle
 [forks-url]: https://github.com/GooseKIller/EndoscopeAi/forks
 [stars-shield]: https://img.shields.io/badge/Stars-2-yellow
 [stars-url]: https://github.com/GooseKIller/EndoscopeAi/stargazers
-[issues-shield]: https://img.shields.io/badge/Issues-7-purple
+[issues-shield]: https://img.shields.io/badge/Issues-7-green%3Fstyle%3Dsocial
 [issues-url]: https://github.com/GooseKIller/EndoscopeAi/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
 [license-url]: https://github.com/GooseKIller/EndoscopeAi/blob/main/LICENSE
