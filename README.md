@@ -12,6 +12,7 @@
 
 **Interactive support tool for endoscopic surveys**  
 for Pirogov Clinic of High Medical Technologies at St Petersburg University
+Demo video: https://drive.google.com/file/d/13NO0nd3eugrVESLdcbDSkF44bDydmxSE/view?usp=sharing
 
 ## Overview  
 This application is designed to support doctors during endoscopic examinations.  
