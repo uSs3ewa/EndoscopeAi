@@ -1,3 +1,12 @@
+<a id="readme-top"></a>
+
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+
+
+
 # EndoscopeAi
 
 **Interactive support tool for endoscopic surveys**  
@@ -189,6 +198,21 @@ flowchart LR
     DoctorPC --> FlutterApp
     FlutterApp --> YOLO
     FlutterApp --> LocalStorage
+
+
 ```
 
 The customer installs by extracting the release archive and launching the bundled executable. No external services are required.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
+[contributors-url]: https://github.com/GooseKIller/EndoscopeAi/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
+[forks-url]: https://github.com/GooseKIller/EndoscopeAi/forks
+[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
+[stars-url]: https://github.com/GooseKIller/EndoscopeAi/stargazers
+[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
+[issues-url]: https://github.com/GooseKIller/EndoscopeAi/issues
+[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
+[license-url]: https://github.com/GooseKIller/EndoscopeAi/blob/main/LICENSE
