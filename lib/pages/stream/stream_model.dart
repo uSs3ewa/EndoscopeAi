@@ -14,6 +14,8 @@ import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 import 'package:path/path.dart' as p;
 import 'package:endoscopy_ai/pages/recordings/recordings_model.dart';
+import 'package:endoscopy_ai/features/stt/stt_service.dart';
+import 'package:endoscopy_ai/yolo/yolo_service.dart';
 
 class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
@@ -24,7 +26,9 @@ class StreamPageModel with ChangeNotifier {
   Future<void>? _cameraInitializationFuture; // состояние инициализации камеры
   Timer? _cameraCheckTimer; // Таймер для периодической проверки
   StreamSubscription<String>? _sttSub;
-  final List<String> _transcripts = [];
+  final SttService _sttService = SttService();
+  int? _recordingTimestamp;
+  String? _tempTranscriptPath;  final List<String> _transcripts = [];
   bool _isRecording = false;
   bool _isPaused = false;
   late final Directory _recordingsDir;
@@ -234,6 +238,11 @@ class StreamPageModel with ChangeNotifier {
         Duration.zero /* TODO: implement stopwatch */,
       ),
     );
+    YoloService.instance.analyzeFile(file.path).then((dets) {
+      for (final d in dets) {
+        debugPrint('Stream det ${d.label} ${d.confidence.toStringAsFixed(2)}');
+      }
+    });
   }
 
   Future<void> startRecording() async {
@@ -241,9 +250,22 @@ class StreamPageModel with ChangeNotifier {
       return;
     }
     await _controller!.startVideoRecording();
+    _recordingTimestamp = DateTime.now().millisecondsSinceEpoch;
+    _tempTranscriptPath =
+        p.join(_recordingsDir.path, '$_recordingTimestamp.txt');
     _isRecording = true;
     _isPaused = false;
     _transcripts.clear();
+    await _sttService.start(_tempTranscriptPath!);
+    _sttSub = _sttService.stream.listen((text) {
+      _transcripts.add(text);
+      if (!_isDisposed) {
+        notifyListeners();
+      }
+    });
+    _controller!.startImageStream((image) {
+      _sttService.sendAudio(image.planes[0].bytes);
+    });
     if (!_isDisposed) {
       notifyListeners();
     }
@@ -252,13 +274,15 @@ class StreamPageModel with ChangeNotifier {
   Future<String?> stopRecording({String? savePath}) async {
     if (!_isRecording || _controller == null || _isDisposed) return null;
     try {
+      await _controller!.stopImageStream();
       final file = await _controller!.stopVideoRecording();
       _isRecording = false;
       _isPaused = false;
-      _sttSub?.cancel();
-
-      final outFileName = '${DateTime.now().millisecondsSinceEpoch}.mp4';
-      final recordingsOut = p.join(_recordingsDir.path, outFileName);
+      await _sttService.stop();
+      await _sttSub?.cancel();
+      final timestamp = _recordingTimestamp ??
+          DateTime.now().millisecondsSinceEpoch;
+      final outFileName = '$timestamp.mp4';      final recordingsOut = p.join(_recordingsDir.path, outFileName);
       await File(file.path).copy(recordingsOut);
       String finalPath = recordingsOut;
 
@@ -266,6 +290,15 @@ class StreamPageModel with ChangeNotifier {
         await File(recordingsOut).copy(savePath);
         finalPath = savePath;
       }
+      final transcriptPath = p.setExtension(finalPath, '.txt');
+      if (_tempTranscriptPath != null) {
+        await File(_tempTranscriptPath!).copy(transcriptPath);
+        await File(_tempTranscriptPath!).delete();
+      } else {
+        await File(transcriptPath).writeAsString(_transcripts.join('\n'));
+      }
+      _recordingTimestamp = null;
+      _tempTranscriptPath = null;
       if (!_isDisposed) {
         notifyListeners();
       }
@@ -295,6 +328,7 @@ class StreamPageModel with ChangeNotifier {
     print('StreamPageModel disposed');
 
     _sttSub?.cancel();
+    _sttService.stop();
     _cameraCheckTimer?.cancel();
 
     // Асинхронное освобождение ресурсов камеры

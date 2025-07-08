@@ -11,6 +11,7 @@ import 'package:video_player/video_player.dart';
 import 'package:endoscopy_ai/features/patient/record_data.dart';
 import 'package:endoscopy_ai/shared/file_choser.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
+import 'package:endoscopy_ai/yolo/yolo_service.dart';
 
 // Модель содержащая, данные и логику
 class FileVideoPlayerPageStateModel {
@@ -115,6 +116,14 @@ class FileVideoPlayerPageStateModel {
       // Сохранить
       final outFile = File(filePath);
       await outFile.writeAsBytes(pngBytes);
+
+      // Анализ кадра через Rust
+      final detections =
+          await YoloService.instance.analyzeImage(image); // распознаем
+      for (final det in detections) {
+        debugPrint(
+            'Обнаружено ${det.label} ${det.confidence.toStringAsFixed(2)}');
+      }
 
       // Обновить меню для скриншотов
       setState(() {

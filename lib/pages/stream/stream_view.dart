@@ -3,6 +3,7 @@
 //  Тут имплементировано взаимодействие с UI
 // ====================================================
 import 'dart:io';
+import 'dart:async';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -13,14 +14,14 @@ import 'package:endoscopy_ai/pages/stream/stream_model.dart';
 import 'package:endoscopy_ai/shared/widget/buttons.dart';
 import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 //  Логика, содержащая логику, связанную с UI
-class StreamPageView extends StatelessWidget {
+class StreamPageView extends StatefulWidget {
   final StreamPageModel model;
   final CameraDescription camera; // Данные о камере
 
   // Ф-ия, вызываемая при нажатии на кнопку назад
-
   final VoidCallback onBackPressed;
   // Ф-ия, вызываемая при сохранении фотографии
   final Function(XFile) onPictureTaken;
@@ -40,66 +41,124 @@ class StreamPageView extends StatelessWidget {
   });
 
   @override
+  _StreamPageViewState createState() => _StreamPageViewState();
+}
+
+class _StreamPageViewState extends State<StreamPageView> {
+  late WebSocketChannel _channel;
+  String _subtitle = '';
+  Timer? _subtitleTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8765'));
+    _channel.stream.listen((message) {
+      setState(() {
+        _subtitle = message;
+      });
+      _subtitleTimer?.cancel();
+      _subtitleTimer = Timer(const Duration(seconds: 3), () {
+        setState(() {
+          _subtitle = '';
+        });
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _channel.sink.close();
+    _subtitleTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: model,
+      value: widget.model,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Поток с камеры'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: onBackPressed,
+            onPressed: widget.onBackPressed,
           ),
         ),
         body: Consumer<StreamPageModel>(
           builder: (context, model, child) {
-            return Row(
+            return Stack(
               children: [
-                Expanded(
-                  child: Builder(
-                    builder: (context) {
-                      if (model.isInitialized && model.controller != null) {
-                        return CameraPreview(model.controller!);
-                      } else if (!model.cameraAvailable) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.videocam_off, size: 50),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Камера недоступна',
-                                style: TextStyle(fontSize: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Builder(
+                        builder: (context) {
+                          if (model.isInitialized && model.controller != null) {
+                            return CameraPreview(model.controller!);
+                          } else if (!model.cameraAvailable) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.videocam_off, size: 50),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Камера недоступна',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                  const Text(
+                                    'Попробуйте проверить подключение',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: () async {
+                                      await model.reinitializeCamera();
+                                    },
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Повторить попытку'),
+                                  ),
+                                ],
                               ),
-                              const Text(
-                                'Попробуйте проверить подключение',
-                                style: TextStyle(color: Colors.grey),
+                            );
+                          } else {
+                            return const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(),
+                                  SizedBox(height: 16),
+                                  Text('Инициализация камеры...'),
+                                ],
                               ),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: () async {
-                                  await model.reinitializeCamera();
-                                },
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Повторить попытку'),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    createIndention(),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          ScreenshotFeed(onFetchScreenshots: () => model.shots),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ListView(
+                                  children: [
+                                    for (final t in model.transcripts) Text(t),
+                                  ],
+                                ),
                               ),
-                            ],
+                            ),
                           ),
-                        );
-                      } else {
-                        return const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 16),
-                              Text('Инициализация камеры...'),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                  ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 createIndention(5, 5),
                 Expanded(
@@ -116,10 +175,40 @@ class StreamPageView extends StatelessWidget {
                                 for (final t in model.transcripts) Text(t),
                               ],
                             ),
+                // Субтитры поверх видео
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 32,
+                  child: Center(
+                    child: AnimatedOpacity(
+                      opacity: _subtitle.isNotEmpty ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _subtitle,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 4,
+                                color: Colors.black,
+                                offset: Offset(1, 1),
+                              ),
+                            ]
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -140,7 +229,7 @@ class StreamPageView extends StatelessWidget {
                 onPressed: () async {
                   final image = await model.takePicture();
                   if (image != null) {
-                    onPictureTaken(image);
+                    widget.onPictureTaken(image);
                   }
                 },
                 child: const Icon(Icons.camera_alt),
@@ -175,7 +264,6 @@ class StreamPageView extends StatelessWidget {
                     if (recordedPath == null) return;
                     final savePath = await FilePicker.platform.saveFile(
                       dialogTitle: 'Сохранить видео',
-                      // fileName: '${DateTime.now().millisecondsSinceEpoch}.mp4',
                       fileName: p.basename(recordedPath),
                       type: FileType.custom,
                       allowedExtensions: ['mp4'],
