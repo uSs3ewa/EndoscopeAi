@@ -1,7 +1,18 @@
+<a id="readme-top"></a>
+
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![Unlicense License][license-shield]][license-url]
+
+
+
 # EndoscopeAi
 
 **Interactive support tool for endoscopic surveys**  
 for Pirogov Clinic of High Medical Technologies at St Petersburg University
+Demo video: https://drive.google.com/file/d/13NO0nd3eugrVESLdcbDSkF44bDydmxSE/view?usp=sharing
 
 ## Overview  
 This application is designed to support doctors during endoscopic examinations.  
@@ -189,6 +200,21 @@ flowchart LR
     DoctorPC --> FlutterApp
     FlutterApp --> YOLO
     FlutterApp --> LocalStorage
+
+
 ```
 
 The customer installs by extracting the release archive and launching the bundled executable. No external services are required.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+[contributors-shield]: https://img.shields.io/badge/Contributors-7-blue
+[contributors-url]: https://github.com/GooseKIller/EndoscopeAi/graphs/contributors
+[forks-shield]: https://img.shields.io/badge/Forks-2-red
+[forks-url]: https://github.com/GooseKIller/EndoscopeAi/forks
+[stars-shield]: https://img.shields.io/badge/Stars-2-yellow
+[stars-url]: https://github.com/GooseKIller/EndoscopeAi/stargazers
+[issues-shield]: https://img.shields.io/badge/Issues-7-green%3Fstyle%3Dsocial
+[issues-url]: https://github.com/GooseKIller/EndoscopeAi/issues
+[license-shield]: https://img.shields.io/badge/License-MIT-blue
+[license-url]: https://github.com/GooseKIller/EndoscopeAi/blob/main/LICENSE
