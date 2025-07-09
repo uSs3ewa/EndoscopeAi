@@ -69,60 +69,93 @@ class StreamPageModel with ChangeNotifier {
   Future<void> _performCameraInitialization() async {
     if (_isDisposed) return;
 
-    try {
-      // Полная очистка предыдущего контроллера
-      await _disposeCamera();
-      _controller = null;
-
-      // Используем Windows-специфичный хелпер для инициализации
-      _controller = await WindowsCameraHelper.initializeCamera(
-        cameraDescription,
-        resolution: ResolutionPreset.medium,
-        enableAudio: true,
-      );
-
-      if (_isDisposed) {
+    const int maxAttempts = 3;
+    int attempt = 0;
+    int delayMs = 500;
+    while (attempt < maxAttempts) {
+      try {
         await _disposeCamera();
+        await Future.delayed(Duration(milliseconds: delayMs));
+        _controller = null;
+
+        // Используем Windows-специфичный хелпер для инициализации
+        _controller = await WindowsCameraHelper.initializeCamera(
+          cameraDescription,
+          resolution: ResolutionPreset.medium,
+          enableAudio: true,
+        );
+
+        if (_isDisposed) {
+          await _disposeCamera();
+          return;
+        }
+
+        _isInitialized = true;
+        _cameraAvailable = true;
+
+        // Set camera modes safely (auto, as example)
+        if (_controller != null) {
+          await safeSetFlashMode(FlashMode.auto);
+          await safeSetExposureMode(ExposureMode.auto);
+          await safeSetFocusMode(FocusMode.auto);
+        }
+
+        // Уведомляем слушателей на главном потоке
+        if (!_isDisposed) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!_isDisposed) {
+              notifyListeners();
+            }
+          });
+        }
         return;
-      }
-
-      _isInitialized = true;
-      _cameraAvailable = true;
-
-      // Уведомляем слушателей на главном потоке
-      if (!_isDisposed) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_isDisposed) {
-            notifyListeners();
+      } catch (e) {
+        final errorDescription =
+            WindowsCameraHelper.getWindowsCameraErrorDescription(e);
+        final isAlreadyExists =
+            e.toString().contains('Camera with given device id already exists');
+        if (kDebugMode) {
+          print('Error initializing camera: $errorDescription');
+          print('Original error: $e');
+        }
+        if (isAlreadyExists) {
+          attempt++;
+          delayMs *= 2; // Exponential backoff
+          if (kDebugMode) {
+            print(
+                'Camera already exists error detected. Waiting longer before retry...');
           }
-        });
+          await Future.delayed(Duration(milliseconds: delayMs));
+          continue;
+        }
+        _isInitialized = false;
+        _cameraAvailable = false;
+        await _disposeCamera();
+        _controller = null;
+        if (!_isDisposed) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!_isDisposed) {
+              notifyListeners();
+            }
+          });
+        }
+        throw Exception(errorDescription);
       }
-    } catch (e) {
-      final errorDescription =
-          WindowsCameraHelper.getWindowsCameraErrorDescription(e);
-
-      if (kDebugMode) {
-        print('Error initializing camera: $errorDescription');
-        print('Original error: $e');
-      }
-
-      _isInitialized = false;
-      _cameraAvailable = false;
-      await _disposeCamera();
-      _controller = null;
-
-      // Уведомляем слушателей на главном потоке
-      if (!_isDisposed) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_isDisposed) {
-            notifyListeners();
-          }
-        });
-      }
-
-      // Переобертываем ошибку с понятным описанием
-      throw Exception(errorDescription);
     }
+    // If we reach here, all attempts failed
+    _isInitialized = false;
+    _cameraAvailable = false;
+    await _disposeCamera();
+    _controller = null;
+    if (!_isDisposed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isDisposed) {
+          notifyListeners();
+        }
+      });
+    }
+    throw Exception(
+        'Camera initialization failed after $maxAttempts attempts: Camera is already in use. Please close other applications using the camera and try again.');
   }
 
   Future<void> initialize() async {
@@ -284,6 +317,52 @@ class StreamPageModel with ChangeNotifier {
       return null;
     }
   }
+
+  // Platform-safe camera control helpers
+  Future<void> safeSetFlashMode(FlashMode mode) async {
+    if (Platform.isWindows) return; // Skip on Windows
+    try {
+      await _controller?.setFlashMode(mode);
+    } catch (e) {
+      if (e is UnimplementedError) {
+        // if (kDebugMode) print('setFlashMode not implemented on this platform');
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  Future<void> safeSetExposureMode(ExposureMode mode) async {
+    if (Platform.isWindows) return; // Skip on Windows
+    try {
+      await _controller?.setExposureMode(mode);
+    } catch (e) {
+      if (e is UnimplementedError) {
+        // if (kDebugMode)
+        //   print('setExposureMode not implemented on this platform');
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  Future<void> safeSetFocusMode(FocusMode mode) async {
+    if (Platform.isWindows) return; // Skip on Windows
+    try {
+      await _controller?.setFocusMode(mode);
+    } catch (e) {
+      if (e is UnimplementedError) {
+        // if (kDebugMode) print('setFocusMode not implemented on this platform');
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  // Example usage after camera initialization (call these only if needed):
+  // await safeSetFlashMode(FlashMode.auto);
+  // await safeSetExposureMode(ExposureMode.auto);
+  // await safeSetFocusMode(FocusMode.auto);
 
   // Освобождение ресурсов
   @override

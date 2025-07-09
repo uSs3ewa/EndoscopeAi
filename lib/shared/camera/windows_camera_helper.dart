@@ -228,7 +228,9 @@ class WindowsCameraHelper {
   static Future<void> _setupWindowsCamera(CameraController controller) async {
     try {
       // Disable flash if available (common cause of issues on Windows)
-      await controller.setFlashMode(FlashMode.off);
+      if (!Platform.isWindows) {
+        await controller.setFlashMode(FlashMode.off);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Could not set flash mode: $e');
@@ -237,7 +239,9 @@ class WindowsCameraHelper {
 
     try {
       // Set exposure mode to auto if supported
-      await controller.setExposureMode(ExposureMode.auto);
+      if (!Platform.isWindows) {
+        await controller.setExposureMode(ExposureMode.auto);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Could not set exposure mode: $e');
@@ -246,7 +250,9 @@ class WindowsCameraHelper {
 
     try {
       // Set focus mode to auto if supported
-      await controller.setFocusMode(FocusMode.auto);
+      if (!Platform.isWindows) {
+        await controller.setFocusMode(FocusMode.auto);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Could not set focus mode: $e');
