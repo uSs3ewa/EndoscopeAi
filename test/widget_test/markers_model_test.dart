@@ -36,7 +36,9 @@ void main() {
     final sliderWidth = box.size.width;
     final totalMs = model.totalDuration.inMilliseconds.toDouble();
     // Tap very close to the 8-second marker (within threshold)
-    final tapX = (Duration(seconds: 8, milliseconds: 50).inMilliseconds / totalMs) * sliderWidth;
+    final tapX =
+        (Duration(seconds: 8, milliseconds: 50).inMilliseconds / totalMs) *
+            sliderWidth;
     final global = box.localToGlobal(Offset(tapX, 1));
 
     markers.seekToMarker(TapDownDetails(globalPosition: global));
