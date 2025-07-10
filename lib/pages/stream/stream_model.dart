@@ -13,7 +13,7 @@ import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 import 'package:path/path.dart' as p;
 import 'package:endoscopy_ai/pages/recordings/recordings_model.dart';
-import 'package:endoscopy_ai/features/patient/record_data.dart';
+import 'package:endoscopy_ai/features/record_data.dart';
 
 class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
@@ -171,7 +171,7 @@ class StreamPageModel with ChangeNotifier {
   Future<void> _prepareDirs() async {
     final base = Directory(recordData.pathToStorage);
     _recordingsDir = Directory(p.join(base.path, 'videos'));
-    _screenshotsDir = Directory(p.join(base.path, 'screenshots')); 
+    _screenshotsDir = Directory(p.join(base.path, 'screenshots'));
     if (!await _recordingsDir.exists()) {
       await _recordingsDir.create(recursive: true);
     }
@@ -266,7 +266,8 @@ class StreamPageModel with ChangeNotifier {
   Future<void> saveScreenshot(XFile file) async {
     if (_isDisposed) return;
 
-    final name = '${DateTime.now().millisecondsSinceEpoch}${p.extension(file.path)}';
+    final name =
+        '${DateTime.now().millisecondsSinceEpoch}${p.extension(file.path)}';
     final outPath = p.join(_screenshotsDir.path, name);
     await File(file.path).copy(outPath);
 

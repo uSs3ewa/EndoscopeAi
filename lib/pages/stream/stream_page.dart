@@ -6,7 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'stream_model.dart';
 import 'stream_view.dart';
-import 'package:endoscopy_ai/features/patient/record_data.dart';
+import 'package:endoscopy_ai/features/record_data.dart';
 
 // Страница просмотра потокового видео с камеры
 class StreamPage extends StatefulWidget {
@@ -67,7 +67,7 @@ class _StreamPageState extends State<StreamPage> {
   // Обработка сохраненного скриншота по пути `image`
   Future<void> _handlePictureTaken(XFile image) async {
     await _model.saveScreenshot(image);
-    if (mounted) setState(() {});  
+    if (mounted) setState(() {});
   }
 
   @override

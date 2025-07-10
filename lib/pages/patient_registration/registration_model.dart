@@ -1,4 +1,4 @@
-import 'package:endoscopy_ai/features/patient/record_data.dart';
+import 'package:endoscopy_ai/features/record_data.dart';
 
 class PatientRegistrationModel {
   final String nextRoute;

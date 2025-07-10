@@ -1,14 +1,16 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-import 'patient_registration_model.dart';
+import 'registration_model.dart';
 
 class PatientRegistrationView extends StatefulWidget {
   final PatientRegistrationModel model;
-  const PatientRegistrationView({Key? key, required this.model}) : super(key: key);
+  const PatientRegistrationView({Key? key, required this.model})
+      : super(key: key);
 
   @override
-  State<PatientRegistrationView> createState() => _PatientRegistrationViewState();
+  State<PatientRegistrationView> createState() =>
+      _PatientRegistrationViewState();
 }
 
 class _PatientRegistrationViewState extends State<PatientRegistrationView> {

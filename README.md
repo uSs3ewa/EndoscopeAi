@@ -192,3 +192,40 @@ flowchart LR
 ```
 
 The customer installs by extracting the release archive and launching the bundled executable. No external services are required.
+
+## Speech-to-Text (STT) Server
+
+The application includes a Python-based STT server for real-time speech recognition during streaming. To use this feature:
+
+### Prerequisites
+- Python 3.8 or higher
+- Microphone connected to the PC
+
+### Setup
+1. Install Python dependencies:
+   ```bash
+   cd python_stt_server
+   pip install -r requirements.txt
+   ```
+
+### Usage
+1. Start the STT server by running:
+   ```bash
+   start_stt_server.bat
+   ```
+   Or manually:
+   ```bash
+   cd python_stt_server
+   python whisper_server.py
+   ```
+
+2. The server will start listening on `ws://localhost:8765` and provide real-time speech recognition.
+
+3. In the Flutter app, the streaming page will automatically connect to the STT server and display subtitles.
+
+### Troubleshooting
+- If you see "STT сервер недоступен" in the app, make sure the Python server is running
+- Check that port 8765 is not blocked by firewall
+- Ensure your microphone is properly connected and working
+- If you see WebSocket connection errors, try restarting both the Python server and Flutter app
+- Test the WebSocket connection with: `python test_websocket.py` (while server is running)

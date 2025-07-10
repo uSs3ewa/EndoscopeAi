@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'patient_registration_model.dart';
-import 'patient_registration_view.dart';
+import 'registration_model.dart';
+import 'registration_view.dart';
 
 class PatientRegistrationPage extends StatefulWidget {
   final String nextRoute;
@@ -9,7 +9,8 @@ class PatientRegistrationPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<PatientRegistrationPage> createState() => _PatientRegistrationPageState();
+  State<PatientRegistrationPage> createState() =>
+      _PatientRegistrationPageState();
 }
 
 class _PatientRegistrationPageState extends State<PatientRegistrationPage> {

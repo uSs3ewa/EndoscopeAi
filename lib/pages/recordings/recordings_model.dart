@@ -16,24 +16,6 @@ class RecordingsPageModel {
     }).toList();
   }
 
-  Future<void> addRecording(Recording recording) async {
-    final prefs = await SharedPreferences.getInstance();
-    final recordings = await getRecordings();
-    if (recordings.any((r) => r.filePath == recording.filePath)) {
-      return;
-    }
-    recordings.add(recording);
-    await prefs.setStringList(
-      _recordingsKey,
-      recordings
-          .map(
-            (r) =>
-                '${r.filePath}|${r.timestamp.toIso8601String()}|${r.fileName}',
-          )
-          .toList(),
-    );
-  }
-
   Future<void> deleteRecordings(List<Recording> toDelete) async {
     final prefs = await SharedPreferences.getInstance();
     final recordings = await getRecordings();
@@ -44,6 +26,19 @@ class RecordingsPageModel {
       _recordingsKey,
       recordings
           .map((r) => '${r.filePath}|${r.timestamp.toIso8601String()}')
+          .toList(),
+    );
+  }
+
+  Future<void> addRecording(Recording recording) async {
+    final prefs = await SharedPreferences.getInstance();
+    final recordings = await getRecordings();
+    recordings.add(recording);
+    await prefs.setStringList(
+      _recordingsKey,
+      recordings
+          .map((r) =>
+              '${r.filePath}|${r.timestamp.toIso8601String()}|${r.fileName}')
           .toList(),
     );
   }

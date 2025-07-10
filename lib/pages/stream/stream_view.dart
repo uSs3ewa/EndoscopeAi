@@ -11,7 +11,7 @@ import 'package:endoscopy_ai/shared/widget/screenshot_feed.dart';
 import 'package:endoscopy_ai/shared/widget/spacing.dart';
 import 'package:provider/provider.dart';
 import 'package:endoscopy_ai/pages/stream/stream_model.dart';
-import 'package:endoscopy_ai/shared/widget/buttons.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -45,30 +45,100 @@ class StreamPageView extends StatefulWidget {
 }
 
 class _StreamPageViewState extends State<StreamPageView> {
-  late WebSocketChannel _channel;
+  WebSocketChannel? _channel;
   String _subtitle = '';
   Timer? _subtitleTimer;
+  bool _websocketConnected = false;
 
   @override
   void initState() {
     super.initState();
-    _channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8765'));
-    _channel.stream.listen((message) {
-      setState(() {
-        _subtitle = message;
+    _initializeWebSocket();
+  }
+
+  void _initializeWebSocket() {
+    try {
+      _channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8765'));
+      _websocketConnected = true;
+
+      _channel!.stream.listen(
+        (message) {
+          if (mounted) {
+            setState(() {
+              _subtitle = message;
+            });
+            _subtitleTimer?.cancel();
+            _subtitleTimer = Timer(const Duration(seconds: 3), () {
+              if (mounted) {
+                setState(() {
+                  _subtitle = '';
+                });
+              }
+            });
+          }
+        },
+        onError: (error) {
+          if (mounted) {
+            setState(() {
+              _websocketConnected = false;
+            });
+            // Only show error message if it's not a normal disconnection
+            if (!error.toString().contains('ConnectionClosedError') &&
+                !error.toString().contains('Connection closed')) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text(
+                      'STT сервер недоступен. Запустите start_stt_server.bat'),
+                  duration: const Duration(seconds: 5),
+                  action: SnackBarAction(
+                    label: 'OK',
+                    onPressed: () {},
+                  ),
+                ),
+              );
+            }
+          }
+          print('WebSocket error: $error');
+        },
+        onDone: () {
+          if (mounted) {
+            setState(() {
+              _websocketConnected = false;
+            });
+          }
+          print('WebSocket connection closed');
+        },
+      );
+    } catch (e) {
+      print('Failed to connect to WebSocket server: $e');
+      _websocketConnected = false;
+      // Show helpful message to user after a short delay to ensure context is available
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                  'STT сервер недоступен. Запустите start_stt_server.bat'),
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'OK',
+                onPressed: () {},
+              ),
+            ),
+          );
+        }
       });
-      _subtitleTimer?.cancel();
-      _subtitleTimer = Timer(const Duration(seconds: 3), () {
-        setState(() {
-          _subtitle = '';
-        });
-      });
-    });
+    }
   }
 
   @override
   void dispose() {
-    _channel.sink.close();
+    // Close WebSocket connection gracefully
+    try {
+      _channel?.sink.close();
+    } catch (e) {
+      print('Error closing WebSocket: $e');
+    }
     _subtitleTimer?.cancel();
     super.dispose();
   }
@@ -84,6 +154,41 @@ class _StreamPageViewState extends State<StreamPageView> {
             icon: const Icon(Icons.arrow_back),
             onPressed: widget.onBackPressed,
           ),
+          actions: [
+            // WebSocket connection status indicator
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _websocketConnected ? Icons.mic : Icons.mic_off,
+                    color: _websocketConnected ? Colors.green : Colors.red,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _websocketConnected ? 'STT' : 'STT',
+                    style: TextStyle(
+                      color: _websocketConnected ? Colors.green : Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                  if (!_websocketConnected) ...[
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: _initializeWebSocket,
+                      child: const Icon(
+                        Icons.refresh,
+                        size: 16,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
         body: Consumer<StreamPageModel>(
           builder: (context, model, child) {
@@ -173,7 +278,7 @@ class _StreamPageViewState extends State<StreamPageView> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(

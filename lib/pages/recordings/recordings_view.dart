@@ -136,26 +136,6 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton.icon(
-            icon: Icon(Icons.videocam),
-            label: Text('Сделать запись'),
-            onPressed: () {
-              Navigator.pushNamed(context, '/streamVideoPlayer');
-            },
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          ),
-          SizedBox(width: 20),
-          ElevatedButton.icon(
-            icon: Icon(Icons.video_library),
-            label: Text('Импортировать видео'),
-            onPressed: () => _importVideo(context),
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          ),
-          SizedBox(width: 20),
-          ElevatedButton.icon(
             icon: Icon(_editMode ? Icons.close : Icons.edit),
             label: Text(_editMode ? 'Отмена' : 'Редактировать'),
             onPressed: () {

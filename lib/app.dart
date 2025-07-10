@@ -8,7 +8,8 @@ import 'package:camera/camera.dart';
 import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 
 import 'pages/pages.dart';
-import 'features/patient/record_data.dart';
+import 'features/record_data.dart';
+import 'pages/patient_registration/registration_page.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -95,9 +96,9 @@ class _AppState extends State<App> {
               ),
             );
           }
-         final recordData =
+          final recordData =
               ModalRoute.of(context)!.settings.arguments as RecordData;
-          return StreamPage(camera: cameras.first, recordData: recordData); 
+          return StreamPage(camera: cameras.first, recordData: recordData);
         },
         Routes.annotate: (context) {
           final path = ModalRoute.of(context)!.settings.arguments as String;
