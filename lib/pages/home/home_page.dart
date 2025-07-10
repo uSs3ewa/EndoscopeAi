@@ -91,11 +91,16 @@ class _HomePageState extends State<HomePage> {
 
   // Просмотр
   Widget _createStreamVideoPlayerButton(context) {
-    return createRedirectButton(
-      context,
-      'Открыть стриминговый плеер',
-      Routes.streamVideoPlayer,
-      disable: _disableControls,
-    );
+    return ElevatedButton(
+      onPressed: _disableControls
+          ? null
+          : () {
+              Navigator.pushNamed(
+                context,
+                Routes.patientRegistration,
+                arguments: Routes.streamVideoPlayer,
+              );
+            },
+      child: const Text('Открыть стриминговый плеер'),    );
   }
 }

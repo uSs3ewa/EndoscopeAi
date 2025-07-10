@@ -9,14 +9,15 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:endoscopy_ai/shared/widget/screenshot_preview.dart';
 import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 import 'package:path/path.dart' as p;
 import 'package:endoscopy_ai/pages/recordings/recordings_model.dart';
+import 'package:endoscopy_ai/features/patient/record_data.dart';
 
 class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
+  final RecordData recordData;
   CameraController? _controller;
   bool _isInitialized = false; // инициализированная ли камера
   bool _cameraAvailable = true; // доступна ли камера
@@ -28,6 +29,7 @@ class StreamPageModel with ChangeNotifier {
   bool _isRecording = false;
   bool _isPaused = false;
   late final Directory _recordingsDir;
+  late final Directory _screenshotsDir;
   bool _isDisposed = false; // Флаг для предотвращения операций после dispose
 
   bool get recording => _isRecording;
@@ -41,7 +43,7 @@ class StreamPageModel with ChangeNotifier {
   List<ScreenshotPreviewModel> get shots => _shots;
 
   // `cameraDescription` -  данные о камере
-  StreamPageModel({required this.cameraDescription}) {
+  StreamPageModel({required this.cameraDescription, required this.recordData}) {
     _prepareDirs();
     // Не инициализируем камеру в конструкторе, только в initialize()
   }
@@ -167,10 +169,14 @@ class StreamPageModel with ChangeNotifier {
   }
 
   Future<void> _prepareDirs() async {
-    final base = await getApplicationDocumentsDirectory();
-    _recordingsDir = Directory(p.join(base.path, 'recordings'));
+    final base = Directory(recordData.pathToStorage);
+    _recordingsDir = Directory(p.join(base.path, 'videos'));
+    _screenshotsDir = Directory(p.join(base.path, 'screenshots')); 
     if (!await _recordingsDir.exists()) {
       await _recordingsDir.create(recursive: true);
+    }
+    if (!await _screenshotsDir.exists()) {
+      await _screenshotsDir.create(recursive: true);
     }
   }
 
@@ -257,13 +263,16 @@ class StreamPageModel with ChangeNotifier {
   }
 
   // Функция, которая вызвается при успешном сохранении кадра
-  void saveScreenshot(XFile file) {
+  Future<void> saveScreenshot(XFile file) async {
     if (_isDisposed) return;
 
-    // Добавляем кадр в ленту
+    final name = '${DateTime.now().millisecondsSinceEpoch}${p.extension(file.path)}';
+    final outPath = p.join(_screenshotsDir.path, name);
+    await File(file.path).copy(outPath);
+
     _shots.add(
       ScreenshotPreviewModel(
-        file.path,
+        outPath,
         Duration.zero /* TODO: implement stopwatch */,
       ),
     );

@@ -6,6 +6,7 @@
 class Routes {
   static final fileVideoPlayer = '/fileVideoPlayer';
   static final streamVideoPlayer = '/streamVideoPlayer';
+  static final patientRegistration = '/patientRegistration';
   static final recordings = '/recordings';
   static final homePage = '/';
   static final annotate = '/annotate';

@@ -8,6 +8,7 @@ import 'package:camera/camera.dart';
 import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 
 import 'pages/pages.dart';
+import 'features/patient/record_data.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -64,6 +65,11 @@ class _AppState extends State<App> {
         Routes.recordings: (context) => RecordingsPage(),
         Routes.homePage: (context) => const HomePage(),
         Routes.fileVideoPlayer: (context) => const FileVidePlayerPage(),
+        Routes.patientRegistration: (context) {
+          final nextRoute =
+              ModalRoute.of(context)!.settings.arguments as String;
+          return PatientRegistrationPage(nextRoute: nextRoute);
+        },
         Routes.streamVideoPlayer: (context) {
           if (!_isCameraInitialized) {
             return const Scaffold(
@@ -89,7 +95,9 @@ class _AppState extends State<App> {
               ),
             );
           }
-          return StreamPage(camera: cameras.first);
+         final recordData =
+              ModalRoute.of(context)!.settings.arguments as RecordData;
+          return StreamPage(camera: cameras.first, recordData: recordData); 
         },
         Routes.annotate: (context) {
           final path = ModalRoute.of(context)!.settings.arguments as String;
