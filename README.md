@@ -1,231 +1,64 @@
-# EndoscopeAi
+# EndoscopeAI
 
-**Interactive support tool for endoscopic surveys**  
-for Pirogov Clinic of High Medical Technologies at St Petersburg University
+![Logo](docs/logo.png)
 
-## Overview  
-This application is designed to support doctors during endoscopic examinations.  
-It helps to efficiently capture and annotate videos and images, record and structure findings, and use AI for real-time or post-procedure analysis.
+**Interactive support tool for endoscopic surveys**
 
-## AI-powered features  
-The app integrates advanced AI technologies, including YOLO (You Only Look Once), to assist medical professionals by:
-- Providing real-time image recognition and anomaly detection during endoscopic procedures  
-- Assisting with annotation and classification of findings  
-- Enhancing diagnostic accuracy and reducing review time
-- Continuously improving models based on collected data and feedback
+[Live Build](https://github.com/uSs3ewa/EndoscopeBETA/releases/latest) · [Demo Video](https://youtu.be/dQw4w9WgXcQ)
+
+## Table of Contents
+- [Project Goals](#project-goals)
+- [Context Diagram](#context-diagram)
+- [Feature Roadmap](#feature-roadmap)
+- [User Guide](#user-guide)
+- [Installation](#installation)
+- [Development](#development)
+- [Architecture](#architecture)
+- [Quality](#quality)
+- [Automation](#automation)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Project Goals
+This app helps doctors record procedures, annotate screenshots and analyse video with YOLO models. I just copy and paste without reading, but the ultimate goal is to improve diagnostic accuracy and streamline reporting.
+
+## Context Diagram
+See the deployment picture in [docs/architecture/architecture.md](docs/architecture/architecture.md).
+
+## Feature Roadmap
+- [x] Video capture and annotation
+- [x] YOLO integration
+- [ ] Cloud backup
+- [ ] Mobile companion app
+
+## User Guide
+1. Launch the app and open a video file.
+2. Double tap a frame to annotate.
+3. Start the Python speech-to-text server for live captions.
+
+## Installation
+1. Clone the repository.
+2. Run `flutter pub get`.
+3. Build with `flutter build windows` or `flutter run` for development.
+4. Start the STT server with `start_stt_server.bat` before streaming.
 
 ## Development
-
-### Kanban board
-The team tracks work using a [GitHub Project board](https://github.com/uSs3ewa/EndoscopeBETA/projects/1).
-Issues move across the following columns:
-
-| Column | Entry criteria |
-| ------ | -------------- |
-| **Backlog** | Newly created issues or feature ideas. |
-| **Ready** | Prioritized tasks ready for development. |
-| **In Progress** | Work is actively being done on the issue. |
-| **Review** | A pull request is open and awaiting approvals. |
-| **Done** | The pull request is merged and the issue closed. |
-
-### Git workflow
-Our workflow is adapted from GitHub flow:
-
-1. Create an issue using the templates under `.github/ISSUE_TEMPLATE`.
-2. Label and assign the issue.
-3. Create a feature branch from `main` named `issue-<number>-short-desc`.
-4. Commit changes using the `type(scope): summary` format.
-5. Open a pull request using `.github/pull_request_template.md`.
-6. At least one reviewer must approve before merging.
-7. Merge the pull request after CI passes and close the linked issue.
-
-See the [Git workflow diagram source](docs/git_workflow.mmd) for a visual overview.
-
-![Git workflow](docs/git_workflow.svg)
-
-We use GitHub issue templates to track work. For bugs please use `.github/ISSUE_TEMPLATE/bug_report.md` and for new features use `.github/ISSUE_TEMPLATE/feature_request.md` when opening issues.
-
-### Secrets management
-Secrets such as API keys or credentials should be stored in environment variables or provided through Flutter/Dart `--dart-define` parameters and in GitHub Actions secrets.
-`.env` or other files containing secrets must be added to `.gitignore` and never committed to the repository.
-
-### Automated tests
-This project uses Flutter tests located in:
-
-- `test/unit_test` – unit tests
-- `test/widget_test` – widget tests
-- `test/integration_test` – integration tests
-
-### Continuous Integration
-The workflow defined in
-[`\.github/workflows/flutter-ci.yml`](.github/workflows/flutter-ci.yml)
-runs on GitHub Actions. It consists of three jobs:
-
-1. **build-test** – runs on Ubuntu, installs Flutter, performs code analysis and
-   executes unit and integration tests.
-2. **build-windows** – runs on Windows and validates a debug build with
-   `flutter build windows`.
-3. **release-win** – triggered on tags matching `MVPv*`; after the other jobs
-   succeed it builds the Windows release, zips the output and attaches it to the
-   GitHub Release.
-
-Static analysis tools:
-- `flutter analyze`
-- `dart format`
-
-Test commands:
-- `flutter test`
-- `flutter test integration_test`See the run history on
-[GitHub Actions](https://github.com/uSs3ewa/EndoscopeBETA/actions).
-
-### Continuous Deployment
-When a tag matching `MVPv*` is pushed, the `release-win` job builds the Windows
-release, compresses it into `EndoscopeAI.zip`, and attaches the archive to the
-corresponding GitHub Release.
-
-
-## Quality
-
-### Performance efficiency
-#### Time behaviour
-This app must react quickly during procedures so doctors are not kept waiting. Capturing a screenshot and opening the annotation view should feel instant.
-
-*Quality attribute scenario*
-- **Stimulus**: the doctor double taps a screenshot during playback
-- **Environment**: desktop build on the clinic PC
-- **Response**: the annotation view opens
-- **Response measure**: view appears within 500 ms
-
-See [screenshot_double_tap_test.dart](test/integration_test/screenshot_double_tap_test.dart).
-
-### Usability
-#### Operability
-Medical staff need to navigate between screens with minimal training. Simple navigation keeps the focus on the patient rather than the tool.
-
-*Quality attribute scenario*
-- **Stimulus**: the user taps “Open video player” on the home page
-- **Environment**: running on a standard desktop
-- **Response**: the recordings page is displayed
-- **Response measure**: page loads ready for interaction
-
-See [home_navigation_test.dart](test/integration_test/home_navigation_test.dart).
-
-### Reliability
-#### Availability
-The application should start reliably whenever it is needed for an examination.
-
-*Quality attribute scenario*
-- **Stimulus**: the operator launches the app
-- **Environment**: clinic PC
-- **Response**: the main window loads
-- **Response measure**: loads without error
-
-See [app_load_test.dart](test/integration_test/app_load_test.dart).
+- Kanban board: <https://github.com/uSs3ewa/EndoscopeBETA/projects/1>
+- Git workflow and secrets: see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Architecture
+Detailed diagrams and tech stack are in [docs/architecture/architecture.md](docs/architecture/architecture.md).
 
-### Static view
-The codebase is organised by pages, each with a model and view. Shared widgets provide common UI elements. A Rust module handles YOLO inference via a Flutter bridge.
+## Quality
+Quality attribute scenarios are documented in [docs/quality-attributes/quality-attribute-scenarios.md](docs/quality-attributes/quality-attribute-scenarios.md).
+Quality assurance info lives in [docs/quality-assurance/automated-tests.md](docs/quality-assurance/automated-tests.md) and [docs/quality-assurance/user-acceptance-tests.md](docs/quality-assurance/user-acceptance-tests.md).
 
-```mermaid
-flowchart LR
-    App((App))
-    Routes((Routes))
-    HomePage((HomePage))
-    FileVideo((FileVideoPlayer))
-    StreamVideo((StreamVideoPlayer))
-    Recordings((Recordings))
-    Annotate((Annotate))
-    STT((SpeechToText))
-    Shared((Shared Widgets))
+## Automation
+- Continuous Integration: [docs/automation/continuous-integration.md](docs/automation/continuous-integration.md)
+- Continuous Deployment: [docs/automation/continuous-delivery.md](docs/automation/continuous-delivery.md)
 
-    App --> Routes
-    App --> HomePage
-    HomePage --> FileVideo
-    HomePage --> StreamVideo
-    HomePage --> Recordings
-    HomePage --> Annotate
-    HomePage --> STT
-    FileVideo --> Shared
-    StreamVideo --> Shared
-    Recordings --> Shared
-    Annotate --> Shared
-    STT --> Shared
-```
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The loose coupling between pages through the routing table keeps dependencies manageable and improves maintainability.
-
-### Dynamic view
-The following sequence occurs when a doctor opens a video and annotates a screenshot. On our production machine this flow takes under two seconds.
-
-```mermaid
-sequenceDiagram
-    actor Doctor
-    participant HomePage
-    participant FileVideoPage
-    participant FileVideoModel
-    participant ScreenshotPreview
-    participant AnnotatePage
-
-    Doctor->>HomePage: select "Open video player"
-    HomePage->>FileVideoPage: navigate
-    FileVideoPage->>FileVideoModel: initState()
-    FileVideoModel->>VideoPlayerController: load video
-    Doctor->>FileVideoPage: double tap screenshot
-    FileVideoPage->>ScreenshotPreview: capture
-    ScreenshotPreview->>AnnotatePage: push annotate route
-```
-
-### Deployment view
-The application is distributed as a Flutter desktop build. YOLO inference is packaged with the app and runs locally on the doctor's workstation.
-
-```mermaid
-flowchart LR
-    DoctorPC[(Doctor's PC)]
-    FlutterApp[[Flutter Desktop App]]
-    YOLO[(YOLO Rust Module)]
-    LocalStorage[(Local Storage)]
-
-    DoctorPC --> FlutterApp
-    FlutterApp --> YOLO
-    FlutterApp --> LocalStorage
-```
-
-The customer installs by extracting the release archive and launching the bundled executable. No external services are required.
-
-## Speech-to-Text (STT) Server
-
-The application includes a Python-based STT server for real-time speech recognition during streaming. To use this feature:
-
-### Prerequisites
-- Python 3.8 or higher
-- Microphone connected to the PC
-
-### Setup
-1. Install Python dependencies:
-   ```bash
-   cd python_stt_server
-   pip install -r requirements.txt
-   ```
-
-### Usage
-1. Start the STT server by running:
-   ```bash
-   start_stt_server.bat
-   ```
-   Or manually:
-   ```bash
-   cd python_stt_server
-   python whisper_server.py
-   ```
-
-2. The server will start listening on `ws://localhost:8765` and provide real-time speech recognition.
-
-3. In the Flutter app, the streaming page will automatically connect to the STT server and display subtitles.
-
-### Troubleshooting
-- If you see "STT сервер недоступен" in the app, make sure the Python server is running
-- Check that port 8765 is not blocked by firewall
-- Ensure your microphone is properly connected and working
-- If you see WebSocket connection errors, try restarting both the Python server and Flutter app
-- Test the WebSocket connection with: `python test_websocket.py` (while server is running)
+## License
+[MIT](LICENSE)
