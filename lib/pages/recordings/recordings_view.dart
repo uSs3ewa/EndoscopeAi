@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'recordings_model.dart';
 import 'package:path/path.dart' as p;
+import '../patient_registration/registration_page.dart';
 
 class RecordingsPageView extends StatefulWidget {
   final RecordingsPageModel model;
@@ -166,9 +167,21 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
         content: Text('Выберите способ создания записи'),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              _importVideo(context);
+              final recordData = await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Dialog(
+                  child: SizedBox(
+                    width: 420,
+                    child: PatientRegistrationPage(nextRoute: ''),
+                  ),
+                ),
+              );
+              if (recordData != null) {
+                await _importVideo(context, recordData: recordData);
+              }
             },
             child: Text('Импортировать видео'),
           ),
@@ -188,7 +201,7 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
     );
   }
 
-  Future<void> _importVideo(BuildContext context) async {
+  Future<void> _importVideo(BuildContext context, {dynamic recordData}) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.video,
@@ -203,6 +216,7 @@ class _RecordingsPageViewState extends State<RecordingsPageView> {
             filePath: filePath,
             timestamp: DateTime.now(),
             fileName: fileName,
+            // TODO: добавить сохранение данных пациента из recordData
           ),
         );
         widget.refresh();

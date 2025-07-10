@@ -33,6 +33,11 @@ class RecordingsPageModel {
   Future<void> addRecording(Recording recording) async {
     final prefs = await SharedPreferences.getInstance();
     final recordings = await getRecordings();
+    // Убираем дубликаты по filePath
+    if (recordings.any((r) => r.filePath == recording.filePath)) {
+      // Уже есть такая запись, не добавляем
+      return;
+    }
     recordings.add(recording);
     await prefs.setStringList(
       _recordingsKey,
