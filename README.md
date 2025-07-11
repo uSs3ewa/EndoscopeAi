@@ -40,7 +40,8 @@ See the deployment picture in [docs/architecture/architecture.md](docs/architect
 1. Clone the repository.
 2. Run `flutter pub get`.
 3. Build with `flutter build windows` or `flutter run` for development.
-4. Start the STT server with `start_stt_server.bat` before streaming.
+4. Launch the app. The STT server and its Python dependencies
+   install automatically on first start.
 
 ## Development
 - Kanban board: <https://github.com/uSs3ewa/EndoscopeBETA/projects/1>

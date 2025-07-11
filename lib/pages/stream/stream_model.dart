@@ -4,6 +4,7 @@
 // ====================================================
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -14,6 +15,7 @@ import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 import 'package:path/path.dart' as p;
 import 'package:endoscopy_ai/pages/recordings/recordings_model.dart';
 import 'package:endoscopy_ai/features/record_data.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class StreamPageModel with ChangeNotifier {
   final CameraDescription cameraDescription; // данные о камере
@@ -24,17 +26,24 @@ class StreamPageModel with ChangeNotifier {
   final List<ScreenshotPreviewModel> _shots = []; // список миниатюр
   Future<void>? _cameraInitializationFuture; // состояние инициализации камеры
   Timer? _cameraCheckTimer; // Таймер для периодической проверки
-  StreamSubscription<String>? _sttSub;
   final List<String> _transcripts = [];
   bool _isRecording = false;
   bool _isPaused = false;
   late final Directory _recordingsDir;
   late final Directory _screenshotsDir;
   bool _isDisposed = false; // Флаг для предотвращения операций после dispose
+  Process? _sttServerProcess;
+  WebSocketChannel? _sttChannel;
+  StreamSubscription? _sttSubscription;
+  bool _websocketConnected = false;
+  String _currentSubtitle = '';
+  Timer? _subtitleTimer;
 
   bool get recording => _isRecording;
   bool get paused => _isPaused;
   List<String> get transcripts => _transcripts;
+  bool get websocketConnected => _websocketConnected;
+  String get currentSubtitle => _currentSubtitle;
 
   // Геттеры/сеттеры
   bool get isInitialized => _isInitialized;
@@ -80,7 +89,7 @@ class StreamPageModel with ChangeNotifier {
         await Future.delayed(Duration(milliseconds: delayMs));
         _controller = null;
 
-        // Используем Windows-специфичный хелпер для инициализации
+        // Используе�� Windows-специфичный хелпер для инициализации
         _controller = await WindowsCameraHelper.initializeCamera(
           cameraDescription,
           resolution: ResolutionPreset.medium,
@@ -160,8 +169,103 @@ class StreamPageModel with ChangeNotifier {
         'Camera initialization failed after $maxAttempts attempts: Camera is already in use. Please close other applications using the camera and try again.');
   }
 
+  Future<void> _startSttServer() async {
+    if (_sttServerProcess != null) {
+      if (kDebugMode) {
+        print('STT server already running.');
+      }
+      return;
+    }
+    try {
+      final scriptPath = p.join('python_stt_server', 'whisper_server.py');
+      final pythonExecutable = Platform.isWindows ? 'python' : 'python3';
+
+      if (kDebugMode) {
+        print('Starting STT server with command: $pythonExecutable $scriptPath');
+      }
+
+      _sttServerProcess = await Process.start(pythonExecutable, [scriptPath]);
+      _sttServerProcess!.stdout.transform(utf8.decoder).listen((data) {
+        if (kDebugMode) {
+          print('STT Server: $data');
+        }
+      });
+      _sttServerProcess!.stderr.transform(utf8.decoder).listen((data) {
+        if (kDebugMode) {
+          print('STT Server ERROR: $data');
+        }
+      });
+      if (kDebugMode) {
+        print('STT server process started.');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error starting STT server: $e');
+      }
+    }
+  }
+
+  void _initializeWebSocket() {
+    if (_sttChannel != null) return;
+
+    try {
+      _sttChannel = WebSocketChannel.connect(Uri.parse('ws://localhost:8765'));
+      _websocketConnected = true;
+      notifyListeners();
+
+      _sttSubscription = _sttChannel!.stream.listen(
+        (message) {
+          if (_isDisposed) return;
+          _transcripts.add(message);
+          _currentSubtitle = message;
+          notifyListeners();
+
+          _subtitleTimer?.cancel();
+          _subtitleTimer = Timer(const Duration(seconds: 3), () {
+            if (_isDisposed) return;
+            _currentSubtitle = '';
+            notifyListeners();
+          });
+        },
+        onError: (error) {
+          if (_isDisposed) return;
+          if (kDebugMode) print('WebSocket error: $error');
+          _websocketConnected = false;
+          notifyListeners();
+          _reconnectWebSocket();
+        },
+        onDone: () {
+          if (_isDisposed) return;
+          if (kDebugMode) print('WebSocket connection closed');
+          _websocketConnected = false;
+          notifyListeners();
+          _reconnectWebSocket();
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) print('Failed to connect to WebSocket server: $e');
+      _websocketConnected = false;
+      notifyListeners();
+      _reconnectWebSocket();
+    }
+  }
+
+  void _reconnectWebSocket() {
+    if (_isDisposed) return;
+    // Simple reconnect delay
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!_isDisposed) {
+        _initializeWebSocket();
+      }
+    });
+  }
+
   Future<void> initialize() async {
     if (_isDisposed) return;
+    await _startSttServer();
+    // Give the server a moment to start before connecting
+    await Future.delayed(const Duration(seconds: 2));
+    _initializeWebSocket();
     await _initializeCamera();
     if (!_isDisposed) {
       _startCameraCheckTimer();
@@ -199,7 +303,7 @@ class StreamPageModel with ChangeNotifier {
 
         await _initializeCamera();
       } else {
-        // Простая проверка, можно добавить более сложную логику
+        // Простая проверка, можно доба��ить более сложную логику
         _cameraAvailable = true;
         if (!_isDisposed) {
           notifyListeners();
@@ -297,7 +401,6 @@ class StreamPageModel with ChangeNotifier {
       final file = await _controller!.stopVideoRecording();
       _isRecording = false;
       _isPaused = false;
-      _sttSub?.cancel();
 
       final outFileName = '${DateTime.now().millisecondsSinceEpoch}.mp4';
       final recordingsOut = p.join(_recordingsDir.path, outFileName);
@@ -382,8 +485,11 @@ class StreamPageModel with ChangeNotifier {
     _isDisposed = true;
     print('StreamPageModel disposed');
 
-    _sttSub?.cancel();
+    _sttSubscription?.cancel();
+    _sttChannel?.sink.close();
+    _sttServerProcess?.kill(ProcessSignal.sigterm);
     _cameraCheckTimer?.cancel();
+    _subtitleTimer?.cancel();
 
     // Асинхронное освобождение ресурсов камеры
     _disposeCamera();
