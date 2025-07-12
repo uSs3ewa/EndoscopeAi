@@ -4,6 +4,7 @@ import sounddevice as sd
 import numpy as np
 import whisper
 import os
+from config import MODEL_NAME, LANGUAGE, SAMPLE_RATE, BLOCK_SIZE, HOST, PORT
 
 # Define the path to store the model
 # Get the directory of the current script
@@ -15,13 +16,11 @@ model_dir = os.path.join(project_root, "assets", "models", "whisper")
 os.makedirs(model_dir, exist_ok=True)
 
 
-SAMPLE_RATE = 16000
-BLOCK_SIZE = 16000  # 1 секунда
-LANGUAGE = "ru"  # только русский
+# Constants are now imported from config.py
 
-print(f"Loading whisper model 'large-v3', this may take a while for the first time...")
+print(f"Loading whisper model '{MODEL_NAME}', this may take a while for the first time...")
 print(f"Model will be saved in {model_dir}")
-model = whisper.load_model("large-v3", download_root=model_dir)  # Можно заменить на "small", "medium", "large"
+model = whisper.load_model(MODEL_NAME, download_root=model_dir)
 print("Whisper model loaded.")
 
 async def recognize_and_send(websocket):
@@ -45,7 +44,11 @@ async def recognize_and_send(websocket):
                     options = whisper.DecodingOptions(language=LANGUAGE, fp16=False, without_timestamps=True)
                     result = whisper.decode(model, mel, options)
                     
-                    text = result.text.strip() if hasattr(result, 'text') else str(result).strip()
+                    # Handle list of DecodingResult objects
+                    if isinstance(result, list) and len(result) > 0:
+                        text = result[0].text.strip()
+                    else:
+                        text = str(result).strip()
                     
                     if text:
                         await websocket.send(text)
@@ -63,8 +66,8 @@ async def recognize_and_send(websocket):
         print("Client disconnected")
 
 async def main():
-    async with websockets.serve(recognize_and_send, "localhost", 8765):
-        print("Server started at ws://localhost:8765")
+    async with websockets.serve(recognize_and_send, HOST, PORT):
+        print(f"Server started at ws://{HOST}:{PORT}")
         await asyncio.Future()  # run forever
 
 if __name__ == "__main__":
