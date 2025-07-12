@@ -147,11 +147,52 @@ class _StreamPageViewState extends State<StreamPageView> {
                           const SizedBox(height: 8),
                           Expanded(
                             child: Card(
+                              elevation: 2,
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: ListView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    for (final t in model.transcripts) Text(t),
+                                    Text(
+                                      'Распознанная речь:',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.bold),
+                                    ),
+                                    const Divider(),
+                                    Expanded(
+                                      child:
+                                          Consumer<StreamPageModel>(
+                                        builder: (context, model, child) {
+                                          if (model.transcripts.isEmpty) {
+                                            return const Center(
+                                              child: Text(
+                                                'Ожидание речи...',
+                                                style: TextStyle(
+                                                    color: Colors.grey),
+                                              ),
+                                            );
+                                          }
+                                          return ListView.builder(
+                                            itemCount: model.transcripts.length,
+                                            itemBuilder: (context, index) {
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 4.0),
+                                                child: Text(
+                                                  model.transcripts[index],
+                                                  style: const TextStyle(
+                                                      fontSize: 14),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

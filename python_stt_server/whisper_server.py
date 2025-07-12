@@ -28,34 +28,37 @@ async def recognize_and_send(websocket):
     print("Client connected")
     try:
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype='float32') as stream:
-            while True:
+            while websocket.open:
                 try:
-                    audio_block, _ = stream.read(BLOCK_SIZE)
+                    audio_block, overflowed = stream.read(BLOCK_SIZE)
+                    if overflowed:
+                        print("Warning: audio buffer overflowed")
                     audio_block = np.squeeze(audio_block)
+                    
+                    # Проверяем, содержит ли блок тишину
+                    if np.abs(audio_block).mean() < 0.005: # Порог тишины
+                        await asyncio.sleep(0.1)
+                        continue
+
                     audio_block = whisper.pad_or_trim(audio_block)
                     mel = whisper.log_mel_spectrogram(audio_block).to(model.device)
-                    options = whisper.DecodingOptions(language=LANGUAGE, fp16=False)
+                    options = whisper.DecodingOptions(language=LANGUAGE, fp16=False, without_timestamps=True)
                     result = whisper.decode(model, mel, options)
-                    # Handle different whisper API versions
-                    if isinstance(result, list):
-                        text = result[0].text.strip() if result else ""
-                    else:
-                        text = result.text.strip() if hasattr(result, 'text') else str(result).strip()
+                    
+                    text = result.text.strip() if hasattr(result, 'text') else str(result).strip()
+                    
                     if text:
-                        try:
-                            await websocket.send(text)
-                        except websockets.exceptions.ConnectionClosedError:
-                            print("Client disconnected")
-                            break
-                        except Exception as e:
-                            print(f"Error sending text: {e}")
-                            break
-                    await asyncio.sleep(0.1)
+                        await websocket.send(text)
+
+                except websockets.exceptions.ConnectionClosed:
+                    print("Client disconnected (inside loop)")
+                    break
                 except Exception as e:
                     print(f"Error processing audio: {e}")
-                    break
+                    # Не выходим из цикла, просто пропускаем этот блок
+                    await asyncio.sleep(0.5)
     except Exception as e:
-        print(f"Error with audio stream: {e}")
+        print(f"Error with audio stream or WebSocket: {e}")
     finally:
         print("Client disconnected")
 

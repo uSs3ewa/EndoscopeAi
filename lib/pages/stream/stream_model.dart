@@ -15,6 +15,7 @@ import 'package:endoscopy_ai/shared/camera/windows_camera_helper.dart';
 import 'package:path/path.dart' as p;
 import 'package:endoscopy_ai/pages/recordings/recordings_model.dart';
 import 'package:endoscopy_ai/features/record_data.dart';
+import 'package:endoscopy_ai/features/stt/stt_server.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class StreamPageModel with ChangeNotifier {
@@ -32,7 +33,7 @@ class StreamPageModel with ChangeNotifier {
   late final Directory _recordingsDir;
   late final Directory _screenshotsDir;
   bool _isDisposed = false; // Флаг для предотвращения операций после dispose
-  Process? _sttServerProcess;
+  
   WebSocketChannel? _sttChannel;
   StreamSubscription? _sttSubscription;
   bool _websocketConnected = false;
@@ -169,41 +170,7 @@ class StreamPageModel with ChangeNotifier {
         'Camera initialization failed after $maxAttempts attempts: Camera is already in use. Please close other applications using the camera and try again.');
   }
 
-  Future<void> _startSttServer() async {
-    if (_sttServerProcess != null) {
-      if (kDebugMode) {
-        print('STT server already running.');
-      }
-      return;
-    }
-    try {
-      final scriptPath = p.join('python_stt_server', 'whisper_server.py');
-      final pythonExecutable = Platform.isWindows ? 'python' : 'python3';
-
-      if (kDebugMode) {
-        print('Starting STT server with command: $pythonExecutable $scriptPath');
-      }
-
-      _sttServerProcess = await Process.start(pythonExecutable, [scriptPath]);
-      _sttServerProcess!.stdout.transform(utf8.decoder).listen((data) {
-        if (kDebugMode) {
-          print('STT Server: $data');
-        }
-      });
-      _sttServerProcess!.stderr.transform(utf8.decoder).listen((data) {
-        if (kDebugMode) {
-          print('STT Server ERROR: $data');
-        }
-      });
-      if (kDebugMode) {
-        print('STT server process started.');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error starting STT server: $e');
-      }
-    }
-  }
+  
 
   void _initializeWebSocket() {
     if (_sttChannel != null) return;
@@ -262,7 +229,7 @@ class StreamPageModel with ChangeNotifier {
 
   Future<void> initialize() async {
     if (_isDisposed) return;
-    await _startSttServer();
+    await SttServer.instance.start();
     // Give the server a moment to start before connecting
     await Future.delayed(const Duration(seconds: 2));
     _initializeWebSocket();
@@ -487,7 +454,7 @@ class StreamPageModel with ChangeNotifier {
 
     _sttSubscription?.cancel();
     _sttChannel?.sink.close();
-    _sttServerProcess?.kill(ProcessSignal.sigterm);
+    SttServer.instance.stop();
     _cameraCheckTimer?.cancel();
     _subtitleTimer?.cancel();
 
